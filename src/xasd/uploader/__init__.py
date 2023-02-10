@@ -2,7 +2,7 @@
 xasd_uploader
 
 Usage:
-    xasd_uploader watch <dir> [--consumers=CONSUMERS] [--producer=[inotify|amqp]] [options]
+    xasd_uploader watch [<dir>] [--consumers=CONSUMERS] [--producer=[inotify|amqp]] [options]
     xasd_uploader <path> [options]
 
 Options:
@@ -227,6 +227,9 @@ def main():
 
     if opts["--producer"] not in ["inotify", "amqp"]:
         raise ValueError("--producer argument must be either 'inotify' or 'amqp'")
+    if opts["--producer"] == "inotify" and opts["<dir>"] is None:
+        print(__doc__)
+        raise ValueError("If using inotify producer, you need to provide a directory.")
 
     setup_logging(opts)
 
