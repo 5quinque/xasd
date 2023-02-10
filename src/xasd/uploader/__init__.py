@@ -108,10 +108,11 @@ class Uploader:
         Args:
             opts (dict): A dictionary of options specifying the number of consumers to use.
         """
-        path = opts["<dir>"]
         asyncio_queue = asyncio.Queue()
         if self.producer_method == "inotify":
-            producer = asyncio.create_task(self.inotify_producer(asyncio_queue, path))
+            producer = asyncio.create_task(
+                self.inotify_producer(asyncio_queue, path=opts["<dir>"])
+            )
         else:
             producer = asyncio.create_task(self.amqp_producer(asyncio_queue))
 
