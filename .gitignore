@@ -1,0 +1,10 @@
+/env/
+/venv/
+
+*.egg-info/
+dist/
+/__pycache__/
+*.pyc
+.coverage
+
+/.vscode/

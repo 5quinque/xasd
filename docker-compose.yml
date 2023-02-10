@@ -1,0 +1,104 @@
+version: '3.8'
+services:
+
+  db:
+    image: mysql:8.0
+    environment:
+      MYSQL_ROOT_PASSWORD: mypassword
+      MYSQL_DATABASE: dejavu
+    ports:
+      - 3306:3306
+    volumes:
+      - ./data:/var/lib/mysql
+
+  adminer:
+    image: adminer
+    restart: always
+    ports:
+      - 8080:8080
+
+  # uploader:
+  #   build:
+  #     context: .
+  #     dockerfile: Dockerfile
+  #   volumes:
+  #     - ${PWD}:/app
+  #   environment:
+  #     - PYTHONDONTWRITEBYTECODE=1
+  #     - PYTHONUNBUFFERED=1
+  #   env_file:
+  #     - .env
+  #   entrypoint: [ "xasd_uploader", "watch", "/app/watch" ]
+  #   healthcheck:
+  #     test:
+  #       [
+  #         "CMD",
+  #         "ps",
+  #         "-ef",
+  #         "|",
+  #         "grep",
+  #         "[x]asd_uploader",
+  #         "||",
+  #         "exit",
+  #         "1"
+  #       ]
+
+  # downloader:
+  #   build:
+  #     context: .
+  #     dockerfile: Dockerfile
+  #   volumes:
+  #     - ${PWD}:/app
+  #   environment:
+  #     - PYTHONDONTWRITEBYTECODE=1
+  #     - PYTHONUNBUFFERED=1
+  #   env_file:
+  #     - .env
+  #   entrypoint: [ "xasd_downloader" ]
+  #   healthcheck:
+  #     test:
+  #       [
+  #         "CMD",
+  #         "ps",
+  #         "-ef",
+  #         "|",
+  #         "grep",
+  #         "[x]asd_downloaders",
+  #         "||",
+  #         "exit",
+  #         "1"
+  #       ]
+
+  apiserver:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      - MODE=dev
+      - PYTHONDONTWRITEBYTECODE=1
+      - PYTHONUNBUFFERED=1
+      - DATABASE_URL=mysql+pymysql://root:mypassword@db/dejavu?charset=utf8mb4
+    ports:
+      - "8000:8000"
+    volumes:
+      - ${PWD}:/app
+    entrypoint: uvicorn xasd.api:app --reload --host 0.0.0.0 --port 8000
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "curl",
+          "--fail",
+          "http://localhost:8000/health"
+        ]
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      - RABBITMQ_DEFAULT_USER=user
+      - RABBITMQ_DEFAULT_PASS=password
+    volumes:
+      - ./rabbitmq:/var/lib/rabbitmq
