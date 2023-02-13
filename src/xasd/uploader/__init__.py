@@ -19,11 +19,7 @@ from docopt import docopt
 from pathlib import Path
 from typing import Optional
 
-import aio_pika
-
-# import aio_pika.abc
-
-from xasd.uploader.asyncinotifyrecurse import InotifyRecurse, Mask
+from xasd.abc import AbstractWorker
 from xasd.uploader.b2_upload import B2Bucket
 from xasd.database.crud import XasdDB
 from xasd.uploader.dejavu import file_hash
@@ -33,7 +29,7 @@ from xasd.uploader import fileinfo
 logger = logging.getLogger(__name__)
 
 
-class Uploader:
+class Uploader(AbstractWorker):
     def __init__(
         self, amqp_url: Optional[str] = None, producer_method: Optional[str] = "inotify"
     ):
@@ -44,17 +40,13 @@ class Uploader:
             amqp_uri (str, optional): The AMQP URI to use for connecting to the broker.
 
         Attributes:
-            _amqp_uri (str): The AMQP connection URI.
+            _amqp_url (str): The AMQP connection URI.
             amqp_consume_queue (str): The name of the AMQP queue to consume from.
             b2 (B2Bucket): An instance of the B2Bucket class for interacting with Backblaze B2 storage.
             db (XasdDB): An instance of the XasdDB class for storing and retrieving data.
             producer_method (str): tbd
             running (bool): A flag indicating whether the application is running or not.
         """
-        self._amqp_url = amqp_url
-        if self._amqp_url is None:
-            self._amqp_url = os.environ.get("AMQP_URL")
-        self.amqp_consume_queue = "download_complete"
 
         self.b2 = B2Bucket(
             os.environ.get("B2_BUCKETNAME"),
@@ -64,9 +56,11 @@ class Uploader:
 
         self.db = XasdDB()
 
-        self.producer_method = producer_method
-
-        self.running = True
+        super().__init__(
+            producer_method=producer_method,
+            amqp_url=amqp_url,
+            amqp_consume_queue="download_complete",
+        )
 
     def _pre_upload_tasks(
         self, local_filepath: str, cloud_filepath: str, mimetype: str
@@ -101,30 +95,6 @@ class Uploader:
         else:
             logger.info(f"<{path}> Not found")
 
-    async def watch(self, opts: dict):
-        """
-        Watch either a directory or AMQP queue and upload files to a b2 bucket and insert it into the database.
-
-        Args:
-            opts (dict): A dictionary of options specifying the number of consumers to use.
-        """
-        asyncio_queue = asyncio.Queue()
-        if self.producer_method == "inotify":
-            producer = asyncio.create_task(
-                self.inotify_producer(asyncio_queue, path=opts["<dir>"])
-            )
-        else:
-            producer = asyncio.create_task(self.amqp_producer(asyncio_queue))
-
-        consumers = [
-            asyncio.create_task(self.consume(n, asyncio_queue))
-            for n in range(int(opts["--consumers"]))
-        ]
-        await asyncio.gather(producer)
-        await asyncio_queue.join()  # Implicitly awaits consumers, too
-        for c in consumers:
-            c.cancel()
-
     async def consume(self, name: int, asyncio_queue: asyncio.Queue) -> None:
         """
         Consumes messages from the asyncio queue and processes them.
@@ -133,7 +103,7 @@ class Uploader:
             name (int): The name/id of the consumer.
             asyncio_queue (asyncio.Queue): The queue from which messages will be consumed.
         """
-        logger.debug(f"Warming up consumer <{name}>")
+        logger.info(f"Warming up consumer <{name}>")
         while True:
             item = await asyncio_queue.get()
 
@@ -143,7 +113,7 @@ class Uploader:
                 # loop over the path and upload each file
 
             # local_filepath = await asyncio_queue.get()
-            logger.debug(f"Consumer {name} got element <{item}>")
+            logger.info(f"Consumer {name} got element <{item}>")
 
             await self.upload(local_filepath)
             asyncio_queue.task_done()
@@ -154,65 +124,6 @@ class Uploader:
 
             if self.producer_method == "amqp":
                 await item.ack()
-
-    async def inotify_producer(self, asyncio_queue: asyncio.Queue, path: str) -> None:
-        """
-        A producer function that watches the given path.
-
-        This function monitors the given `path` for file changes, and places the changed file paths in the provided `asyncio_queue`.
-        If a new directory is created,
-        it will be added to the watch list.
-
-        Args:
-        - asyncio_queue (asyncio.Queue): An asyncio queue to hold the changed file paths.
-        - path (str): The path to monitor for changes.
-
-        Returns:
-        None
-        """
-        with InotifyRecurse(
-            path, mask=Mask.MOVED_TO | Mask.CLOSE_WRITE | Mask.CREATE
-        ) as inotify:
-            async for event in inotify:
-                local_filepath = str(event.path)
-
-                # Watch newly created dirs
-                if (
-                    Mask.CREATE in event.mask
-                    and event.path is not None
-                    and event.path.is_dir()
-                ):
-                    inotify.load_tree(event.path)
-
-                if (
-                    (Mask.MOVED_TO | Mask.CLOSE_WRITE) & event.mask
-                    and event.path is not None
-                    and event.path.is_file()
-                ):
-                    await asyncio_queue.put(local_filepath)
-
-    async def amqp_producer(self, asyncio_queue: asyncio.Queue) -> None:
-        """
-        Asynchronously consume messages from a RabbitMQ queue and put them in an asyncio queue.
-
-        Args:
-        asyncio_queue (asyncio.Queue): An asyncio queue to put the messages in.
-
-        Returns:
-        None
-        """
-        connection = await aio_pika.connect_robust(self._amqp_uri)
-
-        async with connection:
-            channel = await connection.channel()
-            queue = await channel.declare_queue(self.amqp_consume_queue)
-
-            await queue.consume(asyncio_queue.put)
-
-            while self.running:
-                logger.debug(f"Queue size: {asyncio_queue.qsize()}")
-
-                await asyncio.sleep(1)
 
 
 def setup_logging(opts):
