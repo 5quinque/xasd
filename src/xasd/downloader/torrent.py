@@ -3,6 +3,7 @@ import base64
 import logging
 import time
 import urllib.parse
+from typing import Optional
 
 import libtorrent as lt
 
@@ -26,7 +27,7 @@ async def download(session, magnet_link: str, download_path: str):
     Returns:
     bool: True if the torrent was downloaded successfully, False otherwise.
     """
-    logger.info(f"downloading <{magnet_link}>")
+    # logger.info(f"downloading <{magnet_link}>")
 
     handle = session.add_torrent({"url": magnet_link, "save_path": download_path})
 
@@ -41,12 +42,13 @@ async def download(session, magnet_link: str, download_path: str):
 
         await asyncio.sleep(1)
         s = handle.status()
-        logger.info("DHT: %.1f%%" % (s.dht_download_rate / 10**6))
+        logger.info("DHT: %.1f%%" % (s.download_rate / 10**6))
 
     # print information about the download
-    print(
-        f"Downloading {handle.name()} from {handle.num_seeds()} seeds with {handle.num_peers()} peers."
-    )
+    # breakpoint()
+    # print(
+    #     f"Downloading {handle.name()} from {handle.num_seeds()} seeds with {handle.num_peers()} peers."
+    # )
 
     # wait for the download to complete
     # while handle.status().state != lt.torrent_status.seeding:
@@ -59,7 +61,13 @@ async def download(session, magnet_link: str, download_path: str):
                     logger.info("Torrent download progress timed out")
                     return False
                 s = handle.status()
+                logger.info(
+                    f"Attempting to find peers for {s.name}",
+                )
                 await asyncio.sleep(1)
+        # logger.info(
+        #     f"Downloading {s.name} {s.download_rate}, from seeds {s.num_seeds}, peers {s.num_peers}",
+        # )
 
         state_str = [
             "queued",
@@ -78,8 +86,7 @@ async def download(session, magnet_link: str, download_path: str):
                 s.upload_rate / 1000,
                 s.num_peers,
                 state_str[s.state],
-            ),
-            end="\r",
+            )
         )
         await asyncio.sleep(1)
 
@@ -105,4 +112,21 @@ def parse_magnet_link(magnet_link: str):
             decoded_hash = base64.b32decode(b32_hash)
             hex_hash = decoded_hash.hex()
             return hex_hash
+    return None
+
+
+def get_display_name(magnet_link: str) -> Optional[str]:
+    """
+    Parse the magnet link and return the display name if it exists.
+
+    Args:
+    magnet_link (str): The magnet link to parse.
+
+    Returns:
+    Optional[str]: The display name if it exists in the magnet link, None otherwise.
+    """
+    parsed = urllib.parse.urlparse(magnet_link)
+    params = urllib.parse.parse_qs(parsed.query)
+    if "dn" in params:
+        return params["dn"][0]
     return None

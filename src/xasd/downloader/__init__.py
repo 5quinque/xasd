@@ -18,7 +18,8 @@ from typing import Optional
 import aio_pika
 
 from xasd.abc import AbstractWorker
-from xasd.downloader.torrent import create_lt_session, download
+from xasd.downloader.torrent import create_lt_session, download, get_display_name
+from xasd.utils import setup_logging
 
 logger = logging.getLogger(__name__)
 
@@ -68,24 +69,27 @@ class Downloader(AbstractWorker):
         logger.info(f"Warming up consumer <{name}>")
         while True:
             message = await asyncio_queue.get()
-            logger.info(
-                f"Consumer {name} got message <{message.delivery_tag}>, body: <{message.body}>"
-            )
+            logger.info(f"Consumer {name} got message <{message.delivery_tag}>")
             message_dict = json.loads(message.body)
             # await asyncio.sleep(2)
             download_success = await download(
-                message_dict["magnet_uri"], download_path=self.download_path
+                self.lt_session,
+                message_dict["magnet_uri"],
+                download_path=self.download_path,
             )
+            # download_success = True
+            dn = get_display_name(message_dict["magnet_uri"])
+            logger.info(f"Downloading {dn}")
 
             if download_success:
-                logger.info(f"Successfully downloaded {message_dict['name']}")
+                logger.info(f"Successfully downloaded {dn}")
                 message_dict["download_path"] = self.download_path
-                self.publish_complete(
+                await self.publish_message(
                     self.amqp_complete_queue, json.dumps(message_dict)
                 )
             else:
-                logger.info(f"Failed to download {message_dict['name']}")
-                self.publish_complete(self.amqp_retry_queue, message.body)
+                logger.info(f"Failed to download {dn}")
+                await self.publish_message(self.amqp_retry_queue, message.body)
 
             logger.info(
                 f"Finished processing message <{message.delivery_tag}>, sending ack"
@@ -93,37 +97,31 @@ class Downloader(AbstractWorker):
             await message.ack()
             asyncio_queue.task_done()
 
-    async def publish_complete(self, queue, message_body):
+    async def publish_message(self, queue_name: str, message_body: str):
         """
         Publishes a message to a queue on a RabbitMQ server.
 
         Args:
-            queue (str): The name of the queue to publish the message to.
+            queue_name (str): The name of the queue to publish the message to.
             message_body (str): The body of the message to publish.
         """
-        connection = await aio_pika.connect_robust(self._amqp_url)
+        # connection = await aio_pika.connect_robust(self._amqp_url)
 
-        async with connection:
-            # Creating a channel
-            channel = await connection.channel()
+        # async with connection:
+        connection = await self._AbstractWorker__amqp_connection
 
-            message = aio_pika.Message(
-                message_body,
-                delivery_mode=aio_pika.DeliveryMode.PERSISTENT,
-            )
+        channel = await connection.channel()
 
-            await channel.default_exchange.publish(
-                message,
-                routing_key=queue,
-            )
+        message = aio_pika.Message(
+            message_body.encode("utf-8"),
+            delivery_mode=aio_pika.DeliveryMode.PERSISTENT,
+        )
 
-
-def setup_logging(opts):
-    logging.basicConfig(
-        level=opts["--log-level"],
-        format="[%(asctime)s] <%(levelname)s> [%(name)s] %(message)s",
-        force=True,
-    )
+        # Sending the message
+        await channel.default_exchange.publish(
+            message,
+            routing_key=queue_name,
+        )
 
 
 def main():

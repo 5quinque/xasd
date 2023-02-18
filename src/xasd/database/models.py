@@ -31,7 +31,7 @@ class File(Base):
     __tablename__ = "file"
 
     file_id = Column(Integer, primary_key=True)
-    filepath = Column(String(32), nullable=False)
+    filepath = Column(String(64), nullable=False)
     track = relationship("Track", uselist=False, back_populates="file")
 
     hash_id = Column(ForeignKey("hash.hash_id"))
@@ -42,7 +42,7 @@ class Track(Base):
     __tablename__ = "track"
 
     track_id = Column(Integer, primary_key=True)
-    title = Column(String(32), nullable=True)
+    title = Column(String(128), nullable=True)
     tracknumber = Column(String(32), nullable=True)
     date = Column(String(32), nullable=True)
 
@@ -67,7 +67,7 @@ class Artist(Base):
     __tablename__ = "artist"
 
     artist_id = Column(Integer, primary_key=True)
-    name = Column(String(32), nullable=False)
+    name = Column(String(128), nullable=False)
     albums = relationship("Album", back_populates="artist")
     tracks = relationship("Track", back_populates="artist")
 
@@ -76,7 +76,7 @@ class Album(Base):
     __tablename__ = "album"
 
     album_id = Column(Integer, primary_key=True)
-    name = Column(String(32), nullable=False)
+    name = Column(String(128), nullable=False)
     artist_id = Column(Integer, ForeignKey("artist.artist_id"))
     artist = relationship("Artist", back_populates="albums")
     tracks = relationship("Track", back_populates="album")
@@ -86,7 +86,7 @@ class Genre(Base):
     __tablename__ = "genre"
 
     genre_id = Column(Integer, primary_key=True)
-    name = Column(String(32), nullable=True)
+    name = Column(String(64), nullable=True)
     tracks = relationship("Track", back_populates="genre")
 
 
@@ -94,7 +94,7 @@ class Playlist(Base):
     __tablename__ = "playlist"
 
     playlist_id = Column(Integer, primary_key=True)
-    name = Column(String(32), nullable=False)
+    name = Column(String(64), nullable=False)
     tracks = relationship(
         "Track", secondary=playlist_association_table, back_populates="playlists"
     )

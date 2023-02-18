@@ -17,7 +17,7 @@ import logging
 import os
 from docopt import docopt
 from pathlib import Path
-from typing import Optional
+from typing import Any, Optional
 
 from xasd.abc import AbstractWorker
 from xasd.uploader.b2_upload import B2Bucket
@@ -25,6 +25,8 @@ from xasd.database.crud import XasdDB
 from xasd.uploader.dejavu import file_hash
 from xasd.uploader.track_info import track_info
 from xasd.uploader import fileinfo
+from xasd.utils import setup_logging
+from xasd.utils.constants import SUPPORTED_MIMETYPES
 
 logger = logging.getLogger(__name__)
 
@@ -65,8 +67,13 @@ class Uploader(AbstractWorker):
     def _pre_upload_tasks(
         self, local_filepath: str, cloud_filepath: str, mimetype: str
     ):
+        if mimetype not in SUPPORTED_MIMETYPES:
+            logger.warning(f"{local_filepath} does not have a valid mimetype")
+            return False
+
         hash = file_hash(self.db, local_filepath, mimetype)
         if hash is False:
+            logger.warning(f"{local_filepath} already exists in database")
             return False
 
         info = track_info(local_filepath)
@@ -76,7 +83,7 @@ class Uploader(AbstractWorker):
         return True
 
     async def upload(self, path: str):
-        logger.debug(f"Processing <{path}>")
+        logger.info(f"Processing <{path}>")
         p = Path(path)
 
         if p.is_dir():
@@ -85,15 +92,32 @@ class Uploader(AbstractWorker):
         elif p.is_file():
             mimetype = fileinfo.mimetype(path)
 
-            logger.info(f"[{mimetype}]<{path}> needs uploading")
-
             cloud_filepath = fileinfo.generate_uuid_filename()
             if self._pre_upload_tasks(path, cloud_filepath, mimetype):
-                self.b2.upload_file(path, cloud_filepath)
+                # logger.info(f"would upload {path} now")
+                logger.info(f"[{mimetype}]<{path}> needs uploading")
+                # self.b2.upload_file(path, cloud_filepath)
+                # after we've uploaded, do we want to remove the file?
             else:
                 logger.info(f"Pre upload tasks failed for <{path}>, not uploading")
         else:
             logger.info(f"<{path}> Not found")
+
+    async def upload_task(self, item: Any) -> None:
+        """
+        Make sense of the asynco queue item, if it's from amqp, loop over the dir to upload each relevant file
+        else, assume it's a file we've been given from inotify and upload the individual file
+
+        :param item: The item representing a file to be uploaded. If `self.producer_method` is equal to "amqp", `item` should be an instance of `aiormq.Message` and contains a JSON-encoded string with the key "download_path" representing the file path. If `self.producer_method` is not equal to "amqp", `item` should be the file path string.
+        :return: None
+        """
+        local_filepath = item
+
+        if self.producer_method == "amqp":
+            message_dict = json.loads(item.body)
+            local_filepath = message_dict["download_path"]
+
+        await self.upload(local_filepath)
 
     async def consume(self, name: int, asyncio_queue: asyncio.Queue) -> None:
         """
@@ -106,32 +130,16 @@ class Uploader(AbstractWorker):
         logger.info(f"Warming up consumer <{name}>")
         while True:
             item = await asyncio_queue.get()
+            logger.info(f"Consumer {name} got element <>")
 
-            if self.producer_method == "amqp":
-                message_dict = json.loads(item.body)
-                local_filepath = message_dict["download_path"]
-                # loop over the path and upload each file
+            await self.upload_task(item)
 
-            # local_filepath = await asyncio_queue.get()
-            logger.info(f"Consumer {name} got element <{item}>")
-
-            await self.upload(local_filepath)
             asyncio_queue.task_done()
 
-            logger.info(
-                f"Finished processing item <{local_filepath}>"  # , sending ack"
-            )
+            logger.info(f"Finished processing item {item}")  # , sending ack"
 
             if self.producer_method == "amqp":
                 await item.ack()
-
-
-def setup_logging(opts):
-    logging.basicConfig(
-        level=opts["--log-level"],
-        format="[%(asctime)s] <%(levelname)s> [%(name)s] %(message)s",
-        force=True,
-    )
 
 
 def main():

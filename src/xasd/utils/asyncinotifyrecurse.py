@@ -18,7 +18,7 @@ _MASK_ALL = (
 class InotifyRecurse(Inotify):
     def __init__(
         self,
-        path,
+        path: str,
         mask: Mask = _MASK_ALL,
         flags: InitFlags = InitFlags.CLOEXEC | InitFlags.NONBLOCK,
         cache_size: int = 10,

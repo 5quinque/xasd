@@ -41,6 +41,30 @@ class AbstractWorker(ABC):
 
         self.running = True
 
+        self.__amqp = None
+
+    @property
+    async def __amqp_connection(self):
+        if self.__amqp:
+            return self.__amqp
+
+        connection_attempts = 0
+        while True:
+            try:
+                connection_attempts += 1
+                logger.info(f"[{connection_attempts}] Attempting to connect to AMQP")
+                self.__amqp = await aio_pika.connect_robust(self._amqp_url, timeout=60)
+                logger.info(f"[{connection_attempts}] Successfully connected to AMQP")
+                return self.__amqp
+            except ConnectionError as e:
+                if connection_attempts == 300:
+                    logger.error(
+                        f"Failed to connect to AMQP after {connection_attempts} attempts. Exiting."
+                    )
+                    raise e
+                logger.warning(f"Failed to connect to AMQP. Retrying in 5 seconds.")
+                await asyncio.sleep(5)
+
     async def watch(self, opts: dict):
         """
         Create a producer instance (using either inotify or amqp) to send tasks to an asysncio queue
@@ -78,22 +102,7 @@ class AbstractWorker(ABC):
         """
         logger.info("amqp_producer start")
 
-        connection_attempts = 0
-        while True:
-            try:
-                connection_attempts += 1
-                logger.info(f"[{connection_attempts}] Attempting to connect to AMQP")
-                connection = await aio_pika.connect_robust(self._amqp_url, timeout=60)
-                logger.info(f"[{connection_attempts}] Successfully connected to AMQP")
-                break
-            except ConnectionError as e:
-                if connection_attempts == 300:
-                    logger.error(
-                        f"Failed to connect to AMQP after {connection_attempts} attempts. Exiting."
-                    )
-                    raise e
-                logger.warning(f"Failed to connect to AMQP. Retrying in 5 seconds.")
-                await asyncio.sleep(5)
+        connection = await self.__amqp_connection
 
         async with connection:
             channel = await connection.channel()
