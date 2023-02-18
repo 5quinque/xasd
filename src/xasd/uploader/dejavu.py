@@ -1,4 +1,5 @@
-from pathlib import Path
+import tempfile
+
 from PIL import Image
 from pydub import AudioSegment
 import imagehash
@@ -6,6 +7,7 @@ from typing import Union, Type
 
 from xasd.database.crud import XasdDB
 from xasd.database.models import Hash
+from xasd.utils.constants import SUPPORTED_MIMETYPES
 
 
 def file_hash(database: XasdDB, filepath: str, mimetype: str) -> Union[bool, Hash]:
@@ -15,22 +17,20 @@ def file_hash(database: XasdDB, filepath: str, mimetype: str) -> Union[bool, Has
 
     Parameters:
     - database (XasdDB): The database object where the hash will be stored.
-    - filepath (str): The path to the image file.
+    - filepath (str): The path to the audio file.
     - mimetype (str): The mimetype of the image file.
 
     Returns:
     - bool or Hash: A boolean indicating if the hash already exists in the database, or the new hash if it's unique.
     """
-    file = Path(filepath)
-    waveformpath = f"{file.parent}/{file.stem}.png"
+    with tempfile.NamedTemporaryFile() as waveformimage:
+        # Create a waveform
+        create_waveform(filepath, mimetype, waveformimage.name)
 
-    # Create a waveform
-    create_waveform(filepath, mimetype, waveformpath)
+        # Create a perceptual hash of the image
+        hash = image_hash(waveformimage.name)
 
-    # Create a perceptual hash of the image
-    hash = image_hash(waveformpath)
-
-    # Search for the hash in the DB
+    # Search for the hash in the DB, will return false if the hash already exists
     return database.add_unique_hash(hash)
 
 
@@ -110,16 +110,7 @@ def audio_samples(audio_file: str, mimetype: str) -> Union[Type[AudioSegment], b
     Returns:
     - AudioSegment or False: The audio samples as an AudioSegment object, or False if the mimetype is not supported.
     """
-    supported_mimetypes = [
-        "audio/ogg",
-        "audio/mpeg",
-        "audio/mp4",
-        "audio/flac",
-        "audio/x-flac",
-        "audio/wav",
-    ]
-
-    if mimetype in supported_mimetypes:
+    if mimetype in SUPPORTED_MIMETYPES:
         sound = AudioSegment.from_file(audio_file)
         return sound
 
