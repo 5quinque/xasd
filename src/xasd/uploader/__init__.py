@@ -66,7 +66,7 @@ class Uploader(AbstractWorker):
 
     def _pre_upload_tasks(
         self, local_filepath: str, cloud_filepath: str, mimetype: str
-    ):
+    ) -> bool:
         if mimetype not in SUPPORTED_MIMETYPES:
             logger.warning(f"{local_filepath} does not have a valid mimetype")
             return False
@@ -82,7 +82,13 @@ class Uploader(AbstractWorker):
 
         return True
 
-    async def upload(self, path: str):
+    async def upload(self, path: str) -> None:
+        """
+        Upload a file to B2 and store the information in the database.
+
+        Args:
+            path (str): The path to the file to upload.
+        """
         logger.info(f"Processing <{path}>")
         p = Path(path)
 
@@ -95,11 +101,13 @@ class Uploader(AbstractWorker):
             cloud_filepath = fileinfo.generate_uuid_filename()
             if self._pre_upload_tasks(path, cloud_filepath, mimetype):
                 # logger.info(f"would upload {path} now")
-                logger.info(f"[{mimetype}]<{path}> needs uploading")
-                # self.b2.upload_file(path, cloud_filepath)
-                # after we've uploaded, do we want to remove the file?
+                logger.info(f"[{mimetype}]<{path}> uploading...")
+                self.b2.upload_file(path, cloud_filepath)
+                logger.info(f"[{mimetype}]<{path}> upload complete.")
             else:
                 logger.info(f"Pre upload tasks failed for <{path}>, not uploading")
+            logger.info(f"removing file {path}")
+            p.unlink()
         else:
             logger.info(f"<{path}> Not found")
 
@@ -108,8 +116,10 @@ class Uploader(AbstractWorker):
         Make sense of the asynco queue item, if it's from amqp, loop over the dir to upload each relevant file
         else, assume it's a file we've been given from inotify and upload the individual file
 
-        :param item: The item representing a file to be uploaded. If `self.producer_method` is equal to "amqp", `item` should be an instance of `aiormq.Message` and contains a JSON-encoded string with the key "download_path" representing the file path. If `self.producer_method` is not equal to "amqp", `item` should be the file path string.
-        :return: None
+        Args:
+            item (Any): The item representing a file to be uploaded. If `self.producer_method` is equal to "amqp", `item` should be an instance of `aiormq.Message` and contains a JSON-encoded string with the key "download_path" representing the file path. If `self.producer_method` is not equal to "amqp", `item` should be the file path string.
+
+        Returns: None
         """
         local_filepath = item
 
@@ -126,23 +136,32 @@ class Uploader(AbstractWorker):
         Args:
             name (int): The name/id of the consumer.
             asyncio_queue (asyncio.Queue): The queue from which messages will be consumed.
+
+        Returns: None
         """
-        logger.info(f"Warming up consumer <{name}>")
+        consumer_log_prefix = f"Consumer <{name}>"
+        logger.info(f"{consumer_log_prefix} Warming up")
         while True:
             item = await asyncio_queue.get()
-            logger.info(f"Consumer {name} got element <>")
+            logger.info(f"{consumer_log_prefix} got element <>")
 
             await self.upload_task(item)
 
             asyncio_queue.task_done()
 
-            logger.info(f"Finished processing item {item}")  # , sending ack"
+            logger.info(f"{consumer_log_prefix} Finished processing item {item}")
 
+            # If we're using amqp, we need to ack the message
+            # so that it's removed from the queue
+            # otherwise, we'll just keep getting the same message
+            # over and over again
             if self.producer_method == "amqp":
+                logger.info(f"{consumer_log_prefix} sending ack")
                 await item.ack()
 
 
-def main():
+def main() -> None:
+    """xasd-uploader"""
     opts = docopt(__doc__)
 
     if opts["--producer"] not in ["inotify", "amqp"]:

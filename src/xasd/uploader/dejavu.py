@@ -129,4 +129,4 @@ def image_hash(filepath: str) -> str:
     """
     image = Image.open(filepath)
 
-    return imagehash.phash(image, hash_size=8)
+    return imagehash.phash(image, hash_size=9, highfreq_factor=4)
