@@ -100,7 +100,6 @@ class Uploader(AbstractWorker):
 
             cloud_filepath = fileinfo.generate_uuid_filename()
             if self._pre_upload_tasks(path, cloud_filepath, mimetype):
-                # logger.info(f"would upload {path} now")
                 logger.info(f"[{mimetype}]<{path}> uploading...")
                 self.b2.upload_file(path, cloud_filepath)
                 logger.info(f"[{mimetype}]<{path}> upload complete.")
@@ -121,13 +120,13 @@ class Uploader(AbstractWorker):
 
         Returns: None
         """
-        local_filepath = item
-
         if self.producer_method == "amqp":
             message_dict = json.loads(item.body)
             local_filepath = message_dict["download_path"]
-
-        await self.upload(local_filepath)
+            async with item.process():
+                await self.upload(local_filepath)
+        else:
+            await self.upload(item)
 
     async def consume(self, name: int, asyncio_queue: asyncio.Queue) -> None:
         """
@@ -150,14 +149,6 @@ class Uploader(AbstractWorker):
             asyncio_queue.task_done()
 
             logger.info(f"{consumer_log_prefix} Finished processing item {item}")
-
-            # If we're using amqp, we need to ack the message
-            # so that it's removed from the queue
-            # otherwise, we'll just keep getting the same message
-            # over and over again
-            if self.producer_method == "amqp":
-                logger.info(f"{consumer_log_prefix} sending ack")
-                await item.ack()
 
 
 def main() -> None:

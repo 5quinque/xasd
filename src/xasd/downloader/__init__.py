@@ -18,7 +18,13 @@ from typing import Optional
 import aio_pika
 
 from xasd.abc import AbstractWorker
-from xasd.downloader.torrent import create_lt_session, download, get_display_name
+from xasd.database.crud import XasdDB
+from xasd.downloader.torrent import (
+    create_lt_session,
+    download,
+    get_display_name,
+    get_info_hash,
+)
 from xasd.utils import setup_logging
 
 logger = logging.getLogger(__name__)
@@ -54,6 +60,8 @@ class Downloader(AbstractWorker):
         self.lt_session.listen_on(6881, 6891)
         self.lt_queue = []
 
+        self.db = XasdDB()
+
         super().__init__(
             producer_method="amqp", amqp_url=amqp_url, amqp_consume_queue="download"
         )
@@ -71,13 +79,20 @@ class Downloader(AbstractWorker):
             message = await asyncio_queue.get()
             logger.info(f"Consumer {name} got message <{message.delivery_tag}>")
             message_dict = json.loads(message.body)
-            # await asyncio.sleep(2)
+
+            # check if the info_hash is in the database already
+            info_hash = get_info_hash(message_dict["magnet_uri"])
+            if self.db.get_hash(info_hash):
+                logger.info(f"Info hash {info_hash} already in database, skipping")
+                await message.ack()
+                asyncio_queue.task_done()
+                continue
+
             download_success = await download(
                 self.lt_session,
                 message_dict["magnet_uri"],
                 download_path=self.download_path,
             )
-            # download_success = True
             dn = get_display_name(message_dict["magnet_uri"])
             logger.info(f"Downloading {dn}")
 

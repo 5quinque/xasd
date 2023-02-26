@@ -106,3 +106,9 @@ class Hash(Base):
     hash_id = Column(Integer, primary_key=True)
     hash = Column(String(32), nullable=False)
     file = relationship("File", uselist=False, back_populates="hash")
+
+class Magnet(Base):
+    __tablename__ = "magnet"
+
+    magnet_id = Column(Integer, primary_key=True)
+    infohash = Column(String(64))

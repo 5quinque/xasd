@@ -8,7 +8,7 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy import create_engine, exc as sqlalchemy_exc
 
 from xasd.database import Base
-from xasd.database.models import Album, Artist, File, Genre, Track, User, Hash
+from xasd.database.models import Album, Artist, File, Genre, Magnet, Track, Hash
 
 logger = logging.getLogger(__name__)
 
@@ -183,4 +183,30 @@ class XasdDB:
                 Hash.hash == hash,
             ],
             hash=hash,
+        )
+
+    def add_magnet(self, magnet: str) -> Union[bool, Magnet]:
+        """
+        Adds the given magnet to the database if it doesn't already exist.
+
+        Parameters:
+            magnet (str): The magnet to add to the database.
+
+        Returns:
+            Union[bool, Magnet]: False if the magnet already exists in the database,
+            otherwise returns the entity representing the added magnet.
+        """
+        if self.get(
+            Magnet,
+            filter=[
+                Magnet.magnet == magnet,
+            ],
+        ):
+            return False
+        return self.create(
+            Magnet,
+            filter=[
+                Magnet.magnet == magnet,
+            ],
+            magnet=magnet,
         )
