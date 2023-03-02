@@ -22,8 +22,8 @@ from xasd.database.crud import XasdDB
 from xasd.downloader.torrent import (
     create_lt_session,
     download,
-    get_display_name,
-    get_info_hash,
+    get_displayname,
+    get_infohash,
 )
 from xasd.utils import setup_logging
 
@@ -78,39 +78,38 @@ class Downloader(AbstractWorker):
         while True:
             message = await asyncio_queue.get()
             logger.info(f"Consumer {name} got message <{message.delivery_tag}>")
-            message_dict = json.loads(message.body)
 
-            # check if the info_hash is in the database already
-            info_hash = get_info_hash(message_dict["magnet_uri"])
-            if self.db.get_hash(info_hash):
-                logger.info(f"Info hash {info_hash} already in database, skipping")
-                await message.ack()
-                asyncio_queue.task_done()
-                continue
+            async with message.process():
+                logger.info(f"Processing message <{message.delivery_tag}>")
+                message_dict = json.loads(message.body)
 
-            download_success = await download(
-                self.lt_session,
-                message_dict["magnet_uri"],
-                download_path=self.download_path,
-            )
-            dn = get_display_name(message_dict["magnet_uri"])
-            logger.info(f"Downloading {dn}")
+                # check if the infohash is in the database already
+                infohash = get_infohash(message_dict["magnet_uri"])
+                if not self.db.add_magnet(infohash):
+                    logger.info(f"Info hash {infohash} already in database, skipping")
+                    asyncio_queue.task_done()
+                    continue
 
-            if download_success:
-                logger.info(f"Successfully downloaded {dn}")
-                message_dict["download_path"] = self.download_path
-                await self.publish_message(
-                    self.amqp_complete_queue, json.dumps(message_dict)
+                download_success = await download(
+                    self.lt_session,
+                    message_dict["magnet_uri"],
+                    download_path=self.download_path,
                 )
-            else:
-                logger.info(f"Failed to download {dn}")
-                await self.publish_message(self.amqp_retry_queue, message.body)
+                dn = get_displayname(message_dict["magnet_uri"])
+                logger.info(f"Downloading {dn}")
 
-            logger.info(
-                f"Finished processing message <{message.delivery_tag}>, sending ack"
-            )
-            await message.ack()
-            asyncio_queue.task_done()
+                if download_success:
+                    logger.info(f"Successfully downloaded {dn}")
+                    message_dict["download_path"] = self.download_path
+                    await self.publish_message(
+                        self.amqp_complete_queue, json.dumps(message_dict)
+                    )
+                else:
+                    logger.info(f"Failed to download {dn}")
+                    await self.publish_message(self.amqp_retry_queue, message.body)
+
+                logger.info(f"Finished processing message for {dn}")
+                asyncio_queue.task_done()
 
     async def publish_message(self, queue_name: str, message_body: str):
         """

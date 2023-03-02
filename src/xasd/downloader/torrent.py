@@ -1,5 +1,4 @@
 import asyncio
-import base64
 import logging
 import time
 import urllib.parse
@@ -14,7 +13,7 @@ def create_lt_session():
     return lt.session()
 
 
-async def download(session, magnet_link: str, download_path: str):
+async def download(session, magnet_link: str, download_path: str) -> bool:
     """
     Download the torrent associated with the specified magnet link.
     This method waits for the torrent download to complete.
@@ -93,7 +92,7 @@ async def download(session, magnet_link: str, download_path: str):
     return True
 
 
-def parse_magnet_link(magnet_link: str):
+def get_infohash(magnet_link: str) -> Optional[str]:
     """
     Parse the magnet link and return the hexadecimal representation of the BitTorrent infohash.
 
@@ -108,14 +107,11 @@ def parse_magnet_link(magnet_link: str):
     if "xt" in params:
         xt = params["xt"][0]
         if xt.startswith("urn:btih:"):
-            b32_hash = xt[9:]
-            decoded_hash = base64.b32decode(b32_hash)
-            hex_hash = decoded_hash.hex()
-            return hex_hash
+            return xt[9:]
     return None
 
 
-def get_display_name(magnet_link: str) -> Optional[str]:
+def get_displayname(magnet_link: str) -> Optional[str]:
     """
     Parse the magnet link and return the display name if it exists.
 

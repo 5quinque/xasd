@@ -21,6 +21,7 @@ from typing import Optional
 
 import aio_pika
 
+from xasd.scraper.source import demonoid, limetorrent, z1337x
 from xasd.utils import setup_logging
 
 logger = logging.getLogger(__name__)
@@ -53,16 +54,7 @@ class Scraper:
 
         self.__amqp = None
 
-        # Dictionary containing the base urls for each site and last time we scraped it
-        self.base_urls = {
-            "url1": None,
-            "url2": None,
-            "url3": None,
-            "url4": None,
-            "url5": None,
-            "url6": None,
-            "url7": None,
-        }
+        self.sources = []
 
     @property
     async def __amqp_connection(self):
@@ -161,13 +153,28 @@ class Scraper:
         )
 
 
-def main():
+async def _main():
     opts = docopt(__doc__)
 
     setup_logging(opts)
 
-    scraper = Scraper()
-    asyncio.run(scraper.watch(opts))
+    sources = [
+        # limetorrent.LimeTorrent(),
+        # z1337x.Z1337x(),
+        # demonoid.Demonoid(),
+    ]
+    tasks = []
+
+    # loop through sources and create async tasks
+    for source in sources:
+        logger.info(f"Creating task for {source}")
+        tasks.append(asyncio.create_task(source.crawl()))
+
+    await asyncio.gather(*tasks)
+
+
+def main():
+    asyncio.run(_main())
 
 
 if __name__ == "__main__":

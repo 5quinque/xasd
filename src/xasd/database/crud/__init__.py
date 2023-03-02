@@ -185,28 +185,28 @@ class XasdDB:
             hash=hash,
         )
 
-    def add_magnet(self, magnet: str) -> Union[bool, Magnet]:
+    def add_magnet(self, infohash: str) -> Union[bool, Magnet]:
         """
         Adds the given magnet to the database if it doesn't already exist.
 
         Parameters:
-            magnet (str): The magnet to add to the database.
+            infohash (str): The magnet links info hash to add to the database.
 
         Returns:
-            Union[bool, Magnet]: False if the magnet already exists in the database,
+            Union[bool, Magnet]: False if the infohash already exists in the database,
             otherwise returns the entity representing the added magnet.
         """
         if self.get(
             Magnet,
             filter=[
-                Magnet.magnet == magnet,
+                Magnet.infohash == infohash,
             ],
         ):
             return False
         return self.create(
             Magnet,
             filter=[
-                Magnet.magnet == magnet,
+                Magnet.infohash == infohash,
             ],
-            magnet=magnet,
+            infohash=infohash,
         )

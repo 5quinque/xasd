@@ -1,12 +1,17 @@
 /env/
 /venv/
+/venv39/
 
 .env
 
 *.egg-info/
 dist/
-/__pycache__/
+__pycache__/
 *.pyc
 .coverage
 
 /.vscode/
+
+geckodriver.log
+
+data/
