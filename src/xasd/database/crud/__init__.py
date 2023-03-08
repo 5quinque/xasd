@@ -5,7 +5,7 @@ import time
 from typing import Optional, Tuple, Union
 
 from sqlalchemy.orm import sessionmaker
-from sqlalchemy import create_engine, exc as sqlalchemy_exc
+from sqlalchemy import create_engine, or_, exc as sqlalchemy_exc
 
 from xasd.database import Base
 from xasd.database.models import Album, Artist, File, Genre, Magnet, Track, Hash
@@ -87,6 +87,75 @@ class XasdDB:
         return new_entity
 
     create = functools.partialmethod(get, create=True)
+
+    def search_track(self, query):
+        """Search for a track by name
+
+        Args:
+            query (str): String to search for
+
+        Returns:
+            list[Track]: List of tracks
+        """
+        return self.search(Track, query, Track.title)
+
+    def search_artist(self, query):
+        """Search for an artist by name
+
+        Args:
+            query (str): String to search for
+
+        Returns:
+            list[Artist]: List of artists
+        """
+        return self.search(Artist, query, Artist.name)
+
+    def search_album(self, query):
+        """Search for an album by name
+
+        Args:
+            query (str): String to search for
+
+        Returns:
+            list[Album]: List of albums
+        """
+        return self.search(Album, query, Album.name)
+
+    def search(self, table, query, query_column):
+        """Search for an entity by name
+
+        Args:
+            table (Table): Table object you want to query
+            query (str): String to search for
+
+        Returns:
+            list[entity]: List of entities
+
+        n.b.
+            This is a very simple search that just looks for the query string anywhere in the title.
+            It's not very good, but it's good enough for now.
+        """
+
+        return self._session.query(table).filter(query_column.ilike(f"%{query}%")).all()
+
+    def search_all(self, query):
+        """Search for an entity by name
+
+        Args:
+            query (str): String to search for
+
+        Returns:
+            dict[str, list[entity]]: List of entities
+
+        n.b.
+            This is a very simple search that just looks for the query string anywhere in the title.
+            It's not very good, but it's good enough for now.
+        """
+        return {
+            "tracks": self.search_track(query),
+            "artists": self.search_artist(query),
+            "albums": self.search_album(query),
+        }
 
     def api_get(self, table, filter=[], skip=0, limit=100):
         """Used within the API to get pagination list of entities

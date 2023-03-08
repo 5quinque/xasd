@@ -90,3 +90,14 @@ services:
     depends_on:
       - db
       - rabbitmq
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "80:80"
+    healthcheck:
+      test: [ "CMD", "service", "nginx", "status" ]
+    depends_on:
+      - apiserver

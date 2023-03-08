@@ -1,7 +1,7 @@
 """pydantic models used in fastapi
 """
 
-from typing import Union
+from typing import Optional, Union
 
 from pydantic import BaseModel
 from pydantic.networks import EmailStr
@@ -33,7 +33,7 @@ class FileCreate(FileBase):
 
 class File(FileBase):
     file_id: int
-    track: "Track"
+    # track: "Track"
 
     class Config:
         orm_mode = True
@@ -70,7 +70,7 @@ class Genre(GenreBase):
 class TrackBase(BaseModel):
     title: str
     tracknumber: str = None
-    date: str
+    date: str = None
 
 
 class TrackCreate(TrackBase):
@@ -82,7 +82,7 @@ class TrackCreate(TrackBase):
 
 class Track(TrackBase):
     track_id: int
-    # file: File
+    file: File
     # album: "Album"
     artist: Artist
     genre: Genre = None
@@ -124,3 +124,9 @@ class Playlist(PlaylistBase):
 
     class Config:
         orm_mode = True
+
+
+class SearchListResponse(BaseModel):
+    tracks: list[Optional[Track]]
+    albums: list[Optional[Album]]
+    artists: list[Optional[Artist]]

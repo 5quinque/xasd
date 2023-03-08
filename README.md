@@ -34,6 +34,10 @@ Options:
 uvicorn xasd.api:app --reload --host 0.0.0.0 --port 8000
 ```
 
+## frontend
+
+see [frontend/README.md](frontend/README.md)
+
 ## docker
 
 ```bash

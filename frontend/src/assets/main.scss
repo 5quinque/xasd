@@ -1,0 +1,122 @@
+@import './base.css';
+
+$primary: hsla(160, 100%, 37%, 1);
+
+// change nav-link-color
+$nav-link-color: $primary;
+
+
+// [data-bs-theme="dark"] {
+//     --base00: #282c34;
+//     --base01: #353b45;
+//     --base02: #3e4451;
+//     --base03: #868e96;
+//     --base04: #565c64;
+//     --base05: #abb2bf;
+//     --base06: #b6bdca;
+//     --base07: #d19a66;
+//     --base08: #e06c75;
+//     --base09: #d19a66;
+//     --base0A: #e5c07b;
+//     --base0B: #98c379;
+//     --base0C: #56b6c2;
+//     --base0D: #61afef;
+//     --base0E: #c678dd;
+//     --base0F: #be5046;
+
+$form-range-track-bg: $primary;
+// $form-range-thumb-bg: transparent;
+// $form-range-thumb-active-bg: tint-color(green, 70%);
+
+// input[type="range"]::-moz-range-progress {
+//     background-color: #43e5f7;
+// }
+
+// thumb color and radius
+// input[type="range"]::-moz-range-thumb {
+//     background-color: #43e5f7;
+//     border-radius: 50%;
+// }
+
+// input[type="range"]::-moz-range-track {
+//     background-color: #9a905d;
+// }
+
+
+// @media screen and (-webkit-min-device-pixel-ratio:0) {
+//     input[type='range'] {
+//         overflow: hidden;
+//         // width: 80px;
+//         -webkit-appearance: none;
+//         // background-color: #9a905d;
+//     }
+
+//     input[type='range']::-webkit-slider-runnable-track {
+//         // height: 10px;
+//         -webkit-appearance: none;
+//         color: blue;
+//         margin-top: -1px;
+//     }
+
+//     input[type='range']::-webkit-slider-thumb {
+//         width: 10px;
+//         -webkit-appearance: none;
+//         height: 10px;
+//         // cursor: ew-resize;
+//         background: red;
+//         box-shadow: -80px 0 0 80px green;
+//     }
+
+// }
+
+
+// $danger: #dd0000;
+// $success: lime;
+// $warning: orange;
+// $info: aqua;
+
+// $body-bg: #f3f3f0;
+
+@import "bootstrap";
+
+// :root {
+//     --bs-primary: red;
+// }
+
+/* #app {
+    max-width: 1280px;
+    margin: 0 auto;
+
+    font-weight: normal;
+} */
+
+a,
+.green {
+    text-decoration: none;
+    color: hsla(160, 100%, 37%, 1);
+    transition: 0.4s;
+}
+
+@media (hover: hover) {
+    a:hover {
+        background-color: hsla(160, 100%, 37%, 0.2);
+    }
+}
+
+@media (min-width: 1024px) {
+
+    /* body {
+    display: flex;
+    place-items: center;
+  }
+
+  #app {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    padding: 0 2rem;
+  } */
+
+
+
+
+}
