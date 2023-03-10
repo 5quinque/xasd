@@ -41,18 +41,10 @@ export const now_playing = reactive({
     update(track) {
         console.log("updating now_playing", track)
 
-        // if the track is not already in the track_list, add it
-        if (!this.track_list.includes(track)) {
-            this.track_list.push(track)
-        }
-        this.current_track = this.track_list.indexOf(track)
-
-        // set the audio source in the track_list to the given track's file
-        this.track_list[this.current_track].audio_src = FILE_URL + track.file.filepath
-
         // before playing, pause the current playing tracks and reset it's progress
         if (this.playing) {
-            this.pause(this.track_list[this.current_track])
+            console.log("pausing current track", this.track_list[this.current_track])
+            this.pause()
             this.track_list[this.current_track].howl.seek(0)
             // this.track_list.forEach(t => {
             //     if (t.howl) {
@@ -61,6 +53,15 @@ export const now_playing = reactive({
             //     }
             // })
         }
+
+        // if the track is not already in the track_list, add it
+        if (!this.track_list.includes(track)) {
+            this.track_list.push(track)
+        }
+        this.current_track = this.track_list.indexOf(track)
+
+        // set the audio source in the track_list to the given track's file
+        this.track_list[this.current_track].audio_src = FILE_URL + track.file.filepath
 
         this.playing = true
 
@@ -118,7 +119,7 @@ export const now_playing = reactive({
         this.playing_timestamp = formatTime(Math.round(seek))
         this.playing_percentage = (((seek / sound.duration()) * 100) || 0)
 
-        console.log("step timestamp", formatTime(Math.round(seek)))
+        // console.log("step timestamp", formatTime(Math.round(seek)))
 
         // rerun this function in a second if the sound is still playing
         if (sound.playing()) {
@@ -131,8 +132,8 @@ export const now_playing = reactive({
     /**
      * Pause the currently playing track.
      */
-    pause(track) {
-        track.howl.pause()
+    pause() {
+        this.track_list[this.current_track].howl.pause()
     },
 
 
@@ -141,7 +142,7 @@ export const now_playing = reactive({
      * @param  {Number} percent Percentage through the song to skip.
      */
     seek() {
-        console.log("seeking", this.playing_percentage)
+        // console.log("seeking", this.playing_percentage)
         const sound = this.track_list[this.current_track].howl
 
         // Convert the percent into a seek position.
@@ -151,7 +152,7 @@ export const now_playing = reactive({
     },
 
     update_volume() {
-        console.log("updating volume", this.volume)
+        // console.log("updating volume", this.volume)
         Howler.volume(this.volume / 100)
     },
 
@@ -191,7 +192,7 @@ export const now_playing = reactive({
         if (this.playing) {
             this.play()
         } else {
-            this.pause(this.track_list[this.current_track])
+            this.pause()
         }
     }
 })

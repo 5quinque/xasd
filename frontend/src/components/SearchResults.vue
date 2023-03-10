@@ -2,19 +2,7 @@
 
 import { now_playing, search } from '../utils/state.js'
 
-// import bootstrap from 'bootstrap'
-// // import bootstrap from 'bootstrap'
-// import 'bootstrap/dist/js/bootstrap.min.js'
-
-// const popover = new bootstrap.Popover('.popover-dismiss', {
-//     trigger: 'focus'
-// })
-
-// import Popover from bootstrap
-// import Popover from 'bootstrap/dist/js/bootstrap.bundle.min.js'
-
-// const popoverTriggerList = document.querySelectorAll('[data-bs-toggle="popover"]')
-// const popoverList = [...popoverTriggerList].map(popoverTriggerEl => new bootstrap.Popover(popoverTriggerEl))
+import IconThreeDotsVertical from './icons/IconThreeDotsVertical.vue'
 
 const filter_class = function (filter) {
     return {
@@ -38,23 +26,36 @@ const filter_class = function (filter) {
     </div>
     <div v-if="search.filter === 'all' || search.filter === 'songs'">
         <h2>Tracks:</h2>
+
         <ul class="list-group list-group-flush">
             <li class="list-group-item" v-if="search.results" v-for="track in search.results.tracks">
-                <a :href="track.url" target="_blank" class="title" @click.prevent="now_playing.update(track)">
+                <a href="#" target="_blank" class="title" @click.prevent="now_playing.update(track)">
                     {{ track.title }}
                 </a> -
                 <span class="author">
                     <a :href="track.url" target="_blank">{{ track.artist.name }}</a>
                 </span>
-                <a tabindex="0" class="btn btn-sm btn-primary" role="button" data-bs-toggle="popover"
-                    data-bs-trigger="focus" data-bs-title="Dismissible popover" data-bs-content="Added to queue"
-                    @click.prevent="now_playing.add_to_queue(track)">
-                    Add to queue
-                </a>
-                <!-- <button type="button" class="btn btn-lg btn-danger" data-bs-toggle="popover" data-bs-title="Popover title"
-                                                                                                                                                                    data-bs-content="And here's some amazing content. It's very engaging. Right?">Click to toggle
-                                                                                                                                                                    popover</button> -->
-                <!-- <a href="#" class="btn btn-primary btn-sm" @click.prevent="now_playing.add_to_queue(track)">Add to queue</a> -->
+
+                <VTooltip class="d-inline" :triggers="['click']" :autoHide="true">
+                    <a href="#" class="text-secondary bg-transparent">
+                        <IconThreeDotsVertical />
+                    </a>
+                    <template #popper>
+                        <ul class="list-group">
+                            <li class="list-group-item mb-0">
+                                <a href="#" class="text-white popover-link bg-transparent"
+                                    @click.stop="now_playing.add_to_queue(track)">Add to
+                                    Queue</a>
+                            </li>
+                            <li class="list-group-item mb-0">
+                                <a href="#" class="text-white popover-link bg-transparent">Go to artist</a>
+                            </li>
+                            <li class="list-group-item mb-0">
+                                <a href="#" class="text-white popover-link bg-transparent">Go to album</a>
+                            </li>
+                        </ul>
+                    </template>
+                </VTooltip>
             </li>
         </ul>
     </div>
