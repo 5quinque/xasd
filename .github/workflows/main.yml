@@ -1,0 +1,50 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    services:
+      db:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: mypassword
+          MYSQL_DATABASE: dejavu
+        ports:
+          - 3306:3306
+        volumes:
+          - ./data/mysql:/var/lib/mysql
+      rabbitmq:
+        image: rabbitmq:3-management
+        ports:
+          - "5672:5672"
+          - "15672:15672"
+        env:
+          RABBITMQ_DEFAULT_USER: user
+          RABBITMQ_DEFAULT_PASS: password
+        volumes:
+          - ./data/rabbitmq:/var/lib/rabbitmq
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Build and run Docker Compose
+      run: |
+        docker-compose build
+        docker-compose up -d
+      env:
+        MYSQL_HOST: db
+        RABBITMQ_HOST: rabbitmq
+
+    - name: Run tests
+      run: docker-compose run --rm uploader pytest
+
+    - name: Stop services
+      run: docker-compose down
