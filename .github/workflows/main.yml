@@ -18,8 +18,6 @@ jobs:
           MYSQL_DATABASE: dejavu
         ports:
           - 3306:3306
-        volumes:
-          - ./data/mysql:/var/lib/mysql
       rabbitmq:
         image: rabbitmq:3-management
         ports:
@@ -28,8 +26,6 @@ jobs:
         env:
           RABBITMQ_DEFAULT_USER: user
           RABBITMQ_DEFAULT_PASS: password
-        volumes:
-          - ./data/rabbitmq:/var/lib/rabbitmq
 
     steps:
     - name: Checkout code
