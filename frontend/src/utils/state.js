@@ -11,7 +11,7 @@ const FILE_URL = `https://f000.backblazeb2.com/file/xasdmedia/`
  * @property {Function} set_filter - Sets the filter to apply to the search results
  */
 export const search = reactive({
-    query: ref('Earth'),
+    query: ref('a'),
     results: [],
     filter: ref('all'),
     set_filter(filter) {
@@ -96,7 +96,7 @@ export const now_playing = reactive({
                 onload: () => {
                 },
                 onend: () => {
-                    // self.skip(obj, 'next');
+                    this.next_track()
                 },
                 onpause: () => {
                 },
@@ -166,21 +166,36 @@ export const now_playing = reactive({
     },
 
     add_to_queue(track) {
+        console.log("add_to_queue", track, this.track_list)
         this.track_list.push(track)
     },
     remove_from_queue(track) {
-        this.track_list = this.track_list.filter(t => t !== track)
+        this.track_list = this.track_list.filter(t => t.track_id !== track.track_id)
+    },
+    is_track_queued(track) {
+        return this.track_list.some(t => t.track_id === track.track_id)
+    },
+    is_track_playing(track) {
+        if (this.current_track === null) {
+            return false
+        }
+        return this.track_list[this.current_track].track_id === track.track_id
     },
     next_track() {
         console.log("next_track")
+
+        // get the next track and if it exists from the track_list and pass it to update
         if (this.track_list.length > 0 && this.current_track < this.track_list.length - 1) {
-            // this.current_track = this.track_list.shift()
-            this.current_track += 1
-            // this.update(this.track_list.shift())
-            // this.playing = true
-        } else {
-            this.current_track = null
-            // this.playing = false
+            this.update(this.track_list[this.current_track + 1])
+        }
+
+    },
+    previous_track() {
+        console.log("previous_track")
+
+        // get the previous track and if it exists from the track_list and pass it to update
+        if (this.track_list.length > 0 && this.current_track > 0) {
+            this.update(this.track_list[this.current_track - 1])
         }
     },
     toggle_play() {

@@ -1,8 +1,8 @@
 <script setup>
 
-import { now_playing, search } from '../utils/state.js'
+import { search } from '../utils/state.js'
+import Track from './lists/Track.vue';
 
-import IconThreeDotsVertical from './icons/IconThreeDotsVertical.vue'
 
 const filter_class = function (filter) {
     return {
@@ -26,38 +26,7 @@ const filter_class = function (filter) {
     </div>
     <div v-if="search.filter === 'all' || search.filter === 'songs'">
         <h2>Tracks:</h2>
-
-        <ul class="list-group list-group-flush">
-            <li class="list-group-item" v-if="search.results" v-for="track in search.results.tracks">
-                <a href="#" target="_blank" class="title" @click.prevent="now_playing.update(track)">
-                    {{ track.title }}
-                </a> -
-                <span class="author">
-                    <a :href="track.url" target="_blank">{{ track.artist.name }}</a>
-                </span>
-
-                <VTooltip class="d-inline" :triggers="['click']" :autoHide="true">
-                    <a href="#" class="text-secondary bg-transparent">
-                        <IconThreeDotsVertical />
-                    </a>
-                    <template #popper>
-                        <ul class="list-group">
-                            <li class="list-group-item mb-0">
-                                <a href="#" class="text-white popover-link bg-transparent"
-                                    @click.stop="now_playing.add_to_queue(track)">Add to
-                                    Queue</a>
-                            </li>
-                            <li class="list-group-item mb-0">
-                                <a href="#" class="text-white popover-link bg-transparent">Go to artist</a>
-                            </li>
-                            <li class="list-group-item mb-0">
-                                <a href="#" class="text-white popover-link bg-transparent">Go to album</a>
-                            </li>
-                        </ul>
-                    </template>
-                </VTooltip>
-            </li>
-        </ul>
+        <Track v-if="search.results" :tracks="search.results.tracks" />
     </div>
 
     <div v-if="search.filter === 'all' || search.filter === 'artists'">

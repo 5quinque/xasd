@@ -2,8 +2,6 @@
 
 import { ref, watchEffect } from 'vue'
 
-import { Howl, Howler } from 'howler'
-
 import { now_playing, get_current_track_title, get_current_track_artist } from '../utils/state.js'
 
 import IconPause from './icons/player/IconPause.vue';
@@ -73,7 +71,7 @@ const audio = ref(null)
             <div class="container-fluid">
                 <div class="row g-0 text-center">
                     <div class="col-12 pt-2">
-                        <button class="btn text-white">
+                        <button class="btn text-white" @click="now_playing.previous_track()">
                             <IconSkipBackward width="35px" height="35px" />
                         </button>
                         <button class="btn text-white" @click="now_playing.toggle_play()">
@@ -84,7 +82,7 @@ const audio = ref(null)
                                 <IconPlay width="35px" height="35px" />
                             </template>
                         </button>
-                        <button class="btn text-white">
+                        <button class="btn text-white" @click="now_playing.next_track()">
                             <IconSkipForward width="35px" height="35px" />
                         </button>
                     </div>
@@ -99,9 +97,9 @@ const audio = ref(null)
                         <input type="range" class="w-100 form-range" min="0" max="100"
                             v-model="now_playing.playing_percentage" @click="now_playing.seek()">
                         <!-- <div class="w-100 progress" role="progressbar" aria-label="Example 1px high" aria-valuenow="25"
-                                                                                                                                                aria-valuemin="0" aria-valuemax="100" style="height: 5px">
-                                                                                                                                                <div class="progress-bar" style="width: 25%"></div>
-                                                                                                                                            </div> -->
+                                                                                                                                                                aria-valuemin="0" aria-valuemax="100" style="height: 5px">
+                                                                                                                                                                <div class="progress-bar" style="width: 25%"></div>
+                                                                                                                                                            </div> -->
                         <small class="text-muted px-2">{{ now_playing.playing_tracklength }}</small>
                     </div>
 
