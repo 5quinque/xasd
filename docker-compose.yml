@@ -78,7 +78,7 @@ services:
       - "8000:8000"
     volumes:
       - ${PWD}:/app
-    entrypoint: uvicorn xasd.api:app --reload --host 0.0.0.0 --port 8000
+    entrypoint: uvicorn xasd.api:app --host 0.0.0.0 --port 8000
     healthcheck:
       test:
         [

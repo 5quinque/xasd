@@ -2,7 +2,7 @@
 /venv/
 /venv39/
 
-.env
+.env.local
 
 *.egg-info/
 dist/
