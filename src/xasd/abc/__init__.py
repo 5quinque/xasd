@@ -133,6 +133,7 @@ class AbstractWorker(ABC):
         with InotifyRecurse(
             path, mask=Mask.MOVED_TO | Mask.CLOSE_WRITE | Mask.CREATE
         ) as inotify:
+            logger.info(f"Watching {path} for new files")
             async for event in inotify:
                 local_filepath = str(event.path)
 
@@ -142,6 +143,7 @@ class AbstractWorker(ABC):
                     and event.path is not None
                     and event.path.is_dir()
                 ):
+                    logger.info(f"Watching {event.path} for new files")
                     inotify.load_tree(event.path)
 
                 if (
@@ -149,6 +151,7 @@ class AbstractWorker(ABC):
                     and event.path is not None
                     and event.path.is_file()
                 ):
+                    logger.info(f"New file: {local_filepath}")
                     await asyncio_queue.put(local_filepath)
 
     @abstractmethod

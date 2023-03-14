@@ -2,6 +2,81 @@ import { ref, reactive } from 'vue'
 
 const FILE_URL = `https://f000.backblazeb2.com/file/xasdmedia/`
 
+export const auth = reactive({
+    user: null,
+    token: null,
+    loggin_error: null,
+    login(user, token) {
+        this.user = user
+        this.token = token
+
+        // store token in local storage
+        localStorage.setItem('token', token)
+    },
+    logout() {
+        this.user = null
+        this.token = null
+
+        // remove token from local storage
+        localStorage.removeItem('token')
+    },
+    set_token_from_localstorage() {
+        // check if token is in local storage
+        const token = localStorage.getItem('token')
+        if (token) {
+            this.token = token
+        }
+    },
+    is_authenticated() {
+        return this.token !== null
+    },
+    get_user() {
+        return this.user
+    },
+    get_username() {
+        // if we don't have a user, return null
+        console.log("getting username", this.user)
+        if (!this.user) {
+            return null
+        }
+
+        return this.user.name
+    },
+    async set_user() {
+        console.log("setting user")
+
+        // try and get token from local storage
+        this.set_token_from_localstorage()
+
+        // if we don't have a token, return
+        if (!this.token) {
+            return
+        }
+
+        // get user from backend using jwt token
+        const response = await fetch("http://localhost:8000/user/me", {
+            method: "GET",
+            headers: {
+                "accept": "application/json",
+                "Authorization": `Bearer ${this.token}`
+            }
+        })
+
+        // check if we get a 200 response
+        if (!response.ok) {
+            this.logout()
+            return
+        }
+
+        const data = await response.json()
+        console.log("got user", data)
+        this.user = data
+    }
+})
+
+auth.set_user()
+
+
 /**
  * The search query and results
  * @type {Object}

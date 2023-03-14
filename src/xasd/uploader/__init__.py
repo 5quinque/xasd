@@ -155,9 +155,10 @@ def main() -> None:
     """xasd-uploader"""
     opts = docopt(__doc__)
 
-    if opts["--producer"] not in ["inotify", "amqp"]:
+    if opts["watch"] and opts["--producer"] not in ["inotify", "amqp"]:
+        print(__doc__)
         raise ValueError("--producer argument must be either 'inotify' or 'amqp'")
-    if opts["--producer"] == "inotify" and opts["<dir>"] is None:
+    elif opts["watch"] and opts["--producer"] == "inotify" and opts["<dir>"] is None:
         print(__doc__)
         raise ValueError("If using inotify producer, you need to provide a directory.")
 

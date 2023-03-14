@@ -99,6 +99,9 @@ def artist_names(artist_tag: str) -> List[str]:
     # Replace "&" with "," for consistency
     artist_tag = artist_tag.replace("&", ",")
 
+    # Replace "/" with "," for consistency
+    artist_tag = artist_tag.replace("/", ",")
+
     # Use regular expression to split on any separator, including "feat." or "ft."
     artists = re.split(r",|\s(?:feat\.?|ft\.)\s", artist_tag)
 

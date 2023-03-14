@@ -25,6 +25,8 @@ class User(Base):
     user_id = Column(Integer, primary_key=True)
     name = Column(String(32))
     email_address = Column(String(128))
+    password_hash = Column(String(128))
+    # playlists = relationship("Playlist", back_populates="owner")
 
 
 class File(Base):
@@ -94,6 +96,7 @@ class Playlist(Base):
     __tablename__ = "playlist"
 
     playlist_id = Column(Integer, primary_key=True)
+    owner = Column(Integer, ForeignKey("user.user_id"))
     name = Column(String(64), nullable=False)
     tracks = relationship(
         "Track", secondary=playlist_association_table, back_populates="playlists"
@@ -106,6 +109,7 @@ class Hash(Base):
     hash_id = Column(Integer, primary_key=True)
     hash = Column(String(32), nullable=False)
     file = relationship("File", uselist=False, back_populates="hash")
+
 
 class Magnet(Base):
     __tablename__ = "magnet"

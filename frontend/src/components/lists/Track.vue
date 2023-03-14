@@ -45,7 +45,9 @@ const props = defineProps(['tracks'])
                 {{ track.title }}
             </a> -
             <span class="author">
-                <a :href="track.url" target="_blank">{{ track.artist.name }}</a>
+                <RouterLink active-class="active" :to="{ name: 'artist', params: { artist: track.artist.name } }">
+                    {{ track.artist.name }}
+                </RouterLink>
             </span>
         </li>
     </ul>
