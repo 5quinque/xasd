@@ -1,11 +1,8 @@
-from fastapi import Depends, HTTPException, status
+from fastapi import Depends
 from fastapi.security import OAuth2PasswordBearer
-from xasd.api.utils.auth import ALGORITHM, SECRET_KEY
-from xasd.database import models
-from xasd.database.schemas import User, TokenData
-from xasd.database.crud import XasdDB
 
-from jose import JWTError, jwt
+from xasd.api.services.auth import Auth
+from xasd.database.crud import XasdDB
 
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
@@ -19,23 +16,19 @@ def db():
         del db
 
 
-async def get_current_user(
-    db: XasdDB = Depends(db), token: str = Depends(oauth2_scheme)
-):
-    credentials_exception = HTTPException(
-        status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Could not validate credentials",
-        headers={"WWW-Authenticate": "Bearer"},
-    )
+def auth(db: XasdDB = Depends(db)):
+    auth = Auth(db)
     try:
-        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        username: str = payload.get("sub")
-        if username is None:
-            raise credentials_exception
-        token_data = TokenData(username=username)
-    except JWTError:
-        raise credentials_exception
-    user = db.get(models.User, filter=[models.User.name == username])
-    if user is None:
-        raise credentials_exception
-    return user
+        yield auth
+    finally:
+        del auth
+
+
+async def get_current_user(
+    auth: Auth = Depends(auth), token: str = Depends(oauth2_scheme)
+):
+    user = auth.user(token)
+    if user:
+        return user
+
+    return False

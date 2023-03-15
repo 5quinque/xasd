@@ -1,18 +1,11 @@
-from datetime import datetime, timedelta
-
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.responses import Response
 from fastapi.security import OAuth2PasswordRequestForm
 
-from xasd.api.dependencies import db, get_current_user
-from xasd.api.utils.auth import (
-    authenticate_user,
-    create_access_token,
-    password_hash,
-    ACCESS_TOKEN_EXPIRE_MINUTES,
-)
-from xasd.database import schemas, models
-from xasd.database.crud import XasdDB
+from xasd.api.dependencies import auth, db, get_current_user
+
+from xasd.api.services.auth import Auth
+from xasd.database import schemas
 
 
 user_router = APIRouter(
@@ -25,7 +18,16 @@ user_router = APIRouter(
 
 @user_router.get("/user/me", response_model=schemas.User)
 async def read_users_me(current_user: schemas.User = Depends(get_current_user)):
-    return current_user
+    if current_user:
+        return current_user
+
+    # manage and log different exceptions
+    # e.g. expired token, invalid token, etc. (from JWTError in auth:Auth.user)
+    raise HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Could not validate credentials",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
 
 
 # preflight options req for /user/me
@@ -40,36 +42,31 @@ async def options_user_me():
     )
 
 
-@user_router.post("/token")
+@user_router.post("/token", response_model=schemas.Token)
 async def login(
-    form_data: OAuth2PasswordRequestForm = Depends(), db: XasdDB = Depends(db)
+    form_data: OAuth2PasswordRequestForm = Depends(), auth: Auth = Depends(auth)
 ):
-    user = authenticate_user(db, form_data.username, form_data.password)
-
+    user = auth.authenticate_user(form_data.username, form_data.password)
     if not user:
         raise HTTPException(status_code=400, detail="Incorrect username or password")
 
-    access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
-    access_token = create_access_token(
-        data={"sub": user.name}, expires_delta=access_token_expires
-    )
+    access_token = auth.create_access_token(data={"sub": user.name})
+
     return {"access_token": access_token, "token_type": "bearer"}
 
 
 # register
 @user_router.post("/user", response_model=schemas.User, status_code=201)
-async def create_user(user: schemas.UserCreate, db: XasdDB = Depends(db)):
-    # [TODO] move user creation to auth module
-    #        also return a token
-    db_user = db.get(models.User, filter=[models.User.name == user.name])
+async def create_user(user: schemas.UserCreate, auth: Auth = Depends(auth)):
+    db_user = auth.register_user(user)
     if db_user:
+        # [TODO] also return a token
+        # access_token = auth.create_access_token(data={"sub": user.name})
+        # return {"user": user, "jwt": {"access_token": access_token, "token_type": "bearer"}}
+
+        return db_user
+    else:
         raise HTTPException(status_code=400, detail="User already registered")
-    return db.create(
-        models.User,
-        name=user.name,
-        password_hash=password_hash(user.plaintext_password),
-        email_address=user.email_address,
-    )
 
 
 @user_router.options("/user", response_model=schemas.User)
