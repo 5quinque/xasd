@@ -49,18 +49,61 @@ async function submit() {
 </script>
 
 <template>
-    <h2>Login</h2>
+    <div class="login-form w-100 m-auto mt-5 text-center">
+        <form>
+            <h1 class="h3 mb-3 fw-normal">Log in</h1>
+            <div class="form-floating">
+                <input v-model="username" type="text" name="username" class="form-control" id="username"
+                    placeholder="username">
+                <label for="username">Username</label>
+            </div>
+            <div class="form-floating">
+                <input v-model="password" type="password" name="password" class="form-control" id="password"
+                    placeholder="Password">
+                <label for="password">Password</label>
+            </div>
 
-    <form class="login-form">
-        <div class="mb-3">
-            <label for="Email" class="form-label">Username</label>
-            <input v-model="username" type="text" class="form-control" name="username" id="username"
-                aria-describedby="emailHelp">
-        </div>
-        <div class="mb-3">
-            <label for="exampleInputPassword1" class="form-label">Password</label>
-            <input v-model="password" type="password" class="form-control" id="exampleInputPassword1">
-        </div>
-        <button type="submit" class="btn btn-primary" @click.prevent="submit">Login</button>
-    </form>
+            <button class="w-100 btn btn-lg btn-primary" type="submit" @click.prevent="submit">Log in</button>
+        </form>
+    </div>
 </template>
+
+<style scoped>
+.login-form {
+    max-width: 450px;
+    padding: 15px;
+}
+
+.login-form #username {
+    margin-bottom: -1px;
+    border-bottom-right-radius: 0;
+    border-bottom-left-radius: 0;
+}
+
+.login-form #password {
+    margin-bottom: 10px;
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
+}
+
+.form-floating>label {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    padding: 1rem .75rem;
+    overflow: hidden;
+    text-align: start;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    pointer-events: none;
+    border: var(--bs-border-width) solid transparent;
+    transform-origin: 0 0;
+    transition: opacity .1s ease-in-out, transform .1s ease-in-out;
+}
+
+.form-floating {
+    position: relative;
+}
+</style>

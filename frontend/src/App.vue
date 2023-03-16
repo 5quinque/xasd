@@ -51,9 +51,14 @@ import IconViewList from './components/icons/IconViewList.vue'
                             Logout
                         </a>
                     </strong>
-                    <RouterLink v-else to="/login">
-                        Login
-                    </RouterLink>
+                    <div v-else class="d-flex align-items-center justify-content-between">
+                        <RouterLink to="/login" class="link-primary">
+                            Login
+                        </RouterLink>
+                        <RouterLink to="/register" class="link-primary">
+                            Register
+                        </RouterLink>
+                    </div>
                 </div>
 
                 <div class="col-10 mh-100 py-3" style=" overflow-y: scroll;">

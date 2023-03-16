@@ -4,7 +4,8 @@ $primary: hsla(160, 100%, 37%, 1);
 
 // change nav-link-color
 $nav-link-color: $primary;
-
+$nav-link-hover-color: hsl(160, 40%, 76%);
+$link-hover-color-rgb: hsl(160, 40%, 76%);
 
 // [data-bs-theme="dark"] {
 //     --base00: #282c34;
@@ -97,11 +98,11 @@ a,
     transition: 0.4s;
 }
 
-@media (hover: hover) {
-    a:hover {
-        background-color: hsla(160, 100%, 37%, 0.2);
-    }
-}
+// @media (hover: hover) {
+//     a:hover {
+//         background-color: hsla(160, 100%, 37%, 0.2);
+//     }
+// }
 
 @media (min-width: 1024px) {
 
