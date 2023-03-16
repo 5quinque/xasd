@@ -7,23 +7,9 @@ $nav-link-color: $primary;
 $nav-link-hover-color: hsl(160, 40%, 76%);
 $link-hover-color-rgb: hsl(160, 40%, 76%);
 
-// [data-bs-theme="dark"] {
-//     --base00: #282c34;
-//     --base01: #353b45;
-//     --base02: #3e4451;
-//     --base03: #868e96;
-//     --base04: #565c64;
-//     --base05: #abb2bf;
-//     --base06: #b6bdca;
-//     --base07: #d19a66;
-//     --base08: #e06c75;
-//     --base09: #d19a66;
-//     --base0A: #e5c07b;
-//     --base0B: #98c379;
-//     --base0C: #56b6c2;
-//     --base0D: #61afef;
-//     --base0E: #c678dd;
-//     --base0F: #be5046;
+$list-group-bg: transparent;
+$list-group-border-color: transparent;
+$list-group-border-width: 0;
 
 $form-range-track-bg: $primary;
 // $form-range-thumb-bg: transparent;

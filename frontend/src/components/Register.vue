@@ -10,8 +10,6 @@ const password = ref('')
 
 // on submit send post request as json to /token
 async function submit() {
-    console.log('submit', username.value, email_address.value, password.value)
-
     const requestOptions = {
         method: "POST",
         headers: { "Content-Type": "application/json" },

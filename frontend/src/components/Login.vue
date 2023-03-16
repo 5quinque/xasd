@@ -10,8 +10,6 @@ const password = ref('')
 
 // on submit send post request as json to /token
 async function submit() {
-    console.log('submit', username.value, password.value)
-
     const body = new URLSearchParams();
     body.append('username', username.value);
     body.append('password', password.value);

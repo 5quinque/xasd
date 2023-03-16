@@ -8,6 +8,11 @@ export const alert = reactive({
     show(message, type) {
         this.message = message
         this.type = type
+
+        setTimeout(() => {
+            console.log("hiding alert")
+            this.hide()
+        }, 5000)
     },
     hide() {
         this.message = null
@@ -17,7 +22,7 @@ export const alert = reactive({
         return this.message !== null
     },
     alert_class() {
-        const base_class = 'alert alert-dismissible fade show'
+        const base_class = 'z-1 opacity-75 position-fixed w-50 alert alert-dismissible fade show'
         if (this.type === 'success') {
             return base_class + ' alert-success'
         } else if (this.type === 'error') {
@@ -43,6 +48,8 @@ export const auth = reactive({
     logout() {
         this.user = null
         this.token = null
+
+        alert.show('You have been logged out', 'info')
 
         // remove token from local storage
         localStorage.removeItem('token')

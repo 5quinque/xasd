@@ -62,10 +62,15 @@ import IconViewList from './components/icons/IconViewList.vue'
                 </div>
 
                 <div class="col-10 mh-100 py-3" style=" overflow-y: scroll;">
-                    <div v-if="alert.is_visible()" :class="alert.alert_class()" role="alert">
-                        <strong>{{ alert.type }}</strong> {{ alert.message }}
-                        <button type="button" class="btn-close" aria-label="Close" @click.prevent="alert.hide()"></button>
-                    </div>
+                    <Transition>
+                        <div v-if="alert.is_visible()" class="d-flex justify-content-center">
+                            <div :class="alert.alert_class()" role="alert">
+                                <strong>{{ alert.type }}</strong> {{ alert.message }}
+                                <button type="button" class="btn-close" aria-label="Close"
+                                    @click.prevent="alert.hide()"></button>
+                            </div>
+                        </div>
+                    </Transition>
 
                     <RouterView />
                 </div>
@@ -79,3 +84,15 @@ import IconViewList from './components/icons/IconViewList.vue'
     </main>
 </template>
 
+<style scoped>
+/* we will explain what these classes do next! */
+.v-enter-active,
+.v-leave-active {
+    transition: opacity 0.5s ease;
+}
+
+.v-enter-from,
+.v-leave-to {
+    opacity: 0;
+}
+</style>
