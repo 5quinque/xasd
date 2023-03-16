@@ -2,6 +2,33 @@ import { ref, reactive } from 'vue'
 
 const FILE_URL = `https://f000.backblazeb2.com/file/xasdmedia/`
 
+export const alert = reactive({
+    message: null,
+    type: null,
+    show(message, type) {
+        this.message = message
+        this.type = type
+    },
+    hide() {
+        this.message = null
+        this.type = null
+    },
+    is_visible() {
+        return this.message !== null
+    },
+    alert_class() {
+        const base_class = 'alert alert-dismissible fade show'
+        if (this.type === 'success') {
+            return base_class + ' alert-success'
+        } else if (this.type === 'error') {
+            return base_class + ' alert-danger'
+        } else if (this.type === 'info') {
+            return base_class + ' alert-info'
+        }
+    }
+})
+
+
 export const auth = reactive({
     user: null,
     token: null,

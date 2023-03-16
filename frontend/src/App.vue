@@ -1,7 +1,7 @@
 <script setup>
 import { RouterLink, RouterView } from 'vue-router'
 
-import { auth } from './utils/state.js'
+import { alert, auth } from './utils/state.js'
 
 import Player from './components/Player.vue'
 
@@ -44,8 +44,8 @@ import IconViewList from './components/icons/IconViewList.vue'
                     </ul>
                     <hr>
                     <strong v-if="auth.user" class="d-flex align-items-center justify-content-between text-light">
-                        <img src="https://loremflickr.com/g/320/320/girl/all" alt="" class="rounded-circle me-2" width="32"
-                            height="32">
+                        <img :src="'https://loremflickr.com/g/320/320/' + auth.user.name + '/all'" alt=""
+                            class="rounded-circle me-2" width="32" height="32">
                         {{ auth.user.name }}
                         <a href="#" class="ms-2" @click="auth.logout()">
                             Logout
@@ -62,6 +62,11 @@ import IconViewList from './components/icons/IconViewList.vue'
                 </div>
 
                 <div class="col-10 mh-100 py-3" style=" overflow-y: scroll;">
+                    <div v-if="alert.is_visible()" :class="alert.alert_class()" role="alert">
+                        <strong>{{ alert.type }}</strong> {{ alert.message }}
+                        <button type="button" class="btn-close" aria-label="Close" @click.prevent="alert.hide()"></button>
+                    </div>
+
                     <RouterView />
                 </div>
             </div>

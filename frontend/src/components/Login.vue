@@ -1,7 +1,7 @@
 <script setup>
 
 import { ref } from 'vue'
-import { auth } from '../utils/state.js'
+import { alert, auth } from '../utils/state.js'
 
 
 const username = ref('')
@@ -28,8 +28,13 @@ async function submit() {
     // if response status code not 201 then throw error and display error message on page
     // if (response.status !== 200) {
     if (!response.ok) {
-        throw new Error(data.message)
+        console.log('error', data.detail)
+        alert.show(data.detail, 'error')
+        return
+        // throw new Error(data.message)
     }
+
+    alert.show('Logged in successfully', 'success')
 
     // get current user from /user/me
     const userResponse = await fetch("http://localhost:8000/user/me", {

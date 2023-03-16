@@ -1,5 +1,7 @@
 <script setup>
 
+import { alert } from '../utils/state.js'
+
 import { ref } from 'vue'
 
 const username = ref('')
@@ -24,13 +26,15 @@ async function submit() {
     const response = await fetch("http://localhost:8000/user", requestOptions);
     const data = await response.json();
 
-    // if response status code not 201 then throw error and display error message on page
-    if (response.status !== 201) {
-        throw new Error(data.message)
+    if (!response.ok) {
+        console.log('error', data.detail)
+        alert.show(data.detail[0].msg, 'error')
+        return
     }
 
     console.log('data', data)
-    // const x = await fetch("/token")
+
+    alert.show('Registered successfully', 'success')
 }
 
 </script>
