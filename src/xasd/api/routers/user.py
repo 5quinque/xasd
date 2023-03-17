@@ -16,16 +16,23 @@ user_router = APIRouter(
 )
 
 
-@user_router.get("/user/me", response_model=schemas.User)
+@user_router.get(
+    "/user/me",
+    response_model=schemas.User,
+    responses={
+        401: {
+            "description": "Unauthorized",
+            "headers": {"WWW-Authenticate": {"description": "Bearer"}},
+        }
+    },
+)
 async def read_users_me(current_user: schemas.User = Depends(get_current_user)):
     if current_user:
         return current_user
 
-    # manage and log different exceptions
-    # e.g. expired token, invalid token, etc. (from JWTError in auth:Auth.user)
     raise HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Could not validate credentials",
+        detail="Not authenticated",
         headers={"WWW-Authenticate": "Bearer"},
     )
 
@@ -48,16 +55,17 @@ async def login(
 ):
     user = auth.authenticate_user(form_data.username, form_data.password)
     if not user:
-        raise HTTPException(status_code=400, detail="Incorrect username or password")
+        raise HTTPException(status_code=401, detail="Incorrect username or password")
 
     access_token = auth.create_access_token(data={"sub": user.name})
 
     return {"access_token": access_token, "token_type": "bearer"}
 
 
-# register
 @user_router.post("/user", response_model=schemas.User, status_code=201)
 async def create_user(user: schemas.UserCreate, auth: Auth = Depends(auth)):
+    # "registering" a user is more of a "crud" task. We will probably move that.
+    # creating of the token still requires `auth`.
     db_user = auth.register_user(user)
     if db_user:
         # [TODO] also return a token
@@ -66,7 +74,7 @@ async def create_user(user: schemas.UserCreate, auth: Auth = Depends(auth)):
 
         return db_user
     else:
-        raise HTTPException(status_code=400, detail="User already registered")
+        raise HTTPException(status_code=409, detail="User already registered")
 
 
 @user_router.options("/user", response_model=schemas.User)
@@ -74,7 +82,7 @@ async def options_user():
     return Response(
         headers={
             "Access-Control-Allow-Origin": "*",
-            "Access-Control-Allow-Methods": "POST, OPTIONS",
+            "Access-Control-Allow-Methods": "OPTIONS, POST",
             "Access-Control-Allow-Headers": "accept, Content-Type, Authorization",
-        }
+        },
     )

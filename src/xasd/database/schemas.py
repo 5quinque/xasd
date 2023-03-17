@@ -1,6 +1,7 @@
 """pydantic models used in fastapi
 """
 
+from datetime import datetime
 from typing import Optional, Union
 
 from pydantic import BaseModel
@@ -135,7 +136,16 @@ class Playlist(PlaylistBase):
         orm_mode = True
 
 
+class PlaylistList(BaseModel):
+    playlists: Optional[list[Playlist]]
+
+
 class SearchListResponse(BaseModel):
     tracks: list[Optional[Track]]
     albums: list[Optional[Album]]
     artists: list[Optional[Artist]]
+
+
+class HealthCheckResponse(BaseModel):
+    status: str
+    time: datetime

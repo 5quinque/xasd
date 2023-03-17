@@ -5,12 +5,23 @@ import time
 from typing import Optional, Tuple, Union
 
 from sqlalchemy.orm import sessionmaker
-from sqlalchemy import create_engine, or_, exc as sqlalchemy_exc
+from sqlalchemy import create_engine, exc as sqlalchemy_exc
 
 from xasd.database import Base
 from xasd.database.models import Album, Artist, File, Genre, Magnet, Track, Hash
 
 logger = logging.getLogger(__name__)
+
+# [TODO] Break down the CRUD operations into separate modules
+# e.g. user, track, artist, etc.
+# create an abstract base class for the CRUD operations with the methods:
+# - get
+# - create
+# - search
+# - api_get
+#
+# How do we make them all share one session?
+# Keep XasdDB as a singleton and pass the session to the CRUD objects
 
 
 class XasdDB:
@@ -27,7 +38,14 @@ class XasdDB:
 
     def _db_connect(self):
         """Connect to the database and create all relevant tables if they don't exist"""
-        self.__engine = create_engine(self._db_url)
+        if self._db_url.startswith("sqlite"):
+            connect_args = {"check_same_thread": False}
+        else:
+            connect_args = {}
+
+        self.__engine = create_engine(
+            self._db_url, connect_args=connect_args, echo=False
+        )
 
         connection_attempts = 0
         while True:

@@ -1,7 +1,8 @@
 from fastapi import FastAPI
 from datetime import datetime
 
-from xasd.api.routers import track, artist, search, user
+from xasd.api.routers import track, artist, playlist, search, user
+from xasd.database import schemas
 
 
 tags_metadata = [
@@ -32,6 +33,7 @@ app = FastAPI(
 
 app.include_router(track.track_router)
 app.include_router(artist.artist_router)
+app.include_router(playlist.playlist_router)
 app.include_router(search.search_router)
 app.include_router(user.user_router)
 
@@ -44,6 +46,6 @@ async def add_cors_header(request, call_next):
 
 
 # Health check endpoint
-@app.get("/health", tags=["Health"])
+@app.get("/health", tags=["Health"], response_model=schemas.HealthCheckResponse)
 async def health_check():
     return {"status": "OK", "time": str(datetime.utcnow())}

@@ -26,7 +26,7 @@ class User(Base):
     name = Column(String(32))
     email_address = Column(String(128))
     password_hash = Column(String(128))
-    # playlists = relationship("Playlist", back_populates="owner")
+    playlists = relationship("Playlist", back_populates="owner")
 
 
 class File(Base):
@@ -96,7 +96,8 @@ class Playlist(Base):
     __tablename__ = "playlist"
 
     playlist_id = Column(Integer, primary_key=True)
-    owner = Column(Integer, ForeignKey("user.user_id"))
+    owner_id = Column(Integer, ForeignKey("user.user_id"))
+    owner = relationship("User", back_populates="playlists")
     name = Column(String(64), nullable=False)
     tracks = relationship(
         "Track", secondary=playlist_association_table, back_populates="playlists"
