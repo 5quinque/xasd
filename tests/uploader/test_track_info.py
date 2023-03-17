@@ -1,6 +1,6 @@
 import pytest
 
-from xasd.uploader.track_info import track_info, artist_names
+from xasd.uploader.track_info import artist_names
 
 
 @pytest.mark.parametrize(
