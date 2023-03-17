@@ -7,6 +7,7 @@ from xasd.database.crud import XasdDB
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
+
 # Dependency
 def db():
     db = XasdDB()

@@ -29,7 +29,15 @@ def track_info(filepath: str) -> Dict[str, Optional[str]]:
 
     Examples:
         >>> track_info("my_song.mp3")
-        {'album': 'My Album', 'title': 'My Song', 'artist': 'My Artist', 'tracknumber': '1', 'genre': 'Pop', 'date': '2022', 'hash': None}
+        {
+            'album': 'My Album',
+            'title': 'My Song',
+            'artist': 'My Artist',
+            'tracknumber': '1',
+            'genre': 'Pop',
+            'date': '2022',
+            'hash': None
+        }
 
         >>> track_info("nonexistent_file.mp3")
         Traceback (most recent call last):
@@ -73,7 +81,8 @@ def artist_names(artist_tag: str) -> List[str]:
     Parses an i3d artist tag and returns a list of all the artist names.
 
     Args:
-        artist_tag (str): A string representing an i3d artist tag, which may contain one or more artist names, separated by commas,
+        artist_tag (str): A string representing an i3d artist tag,
+            which may contain one or more artist names, separated by commas,
             "and", "&", "feat.", or "ft.".
 
     Returns:

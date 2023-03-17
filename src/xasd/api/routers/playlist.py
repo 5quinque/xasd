@@ -1,10 +1,8 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.responses import Response
-from fastapi.security import OAuth2PasswordRequestForm
 
 from xasd.api.dependencies import db, get_current_user
 
-# from xasd.api.services.auth import Auth
 from xasd.database import models, schemas
 from xasd.database.crud import XasdDB
 
@@ -15,6 +13,7 @@ playlist_router = APIRouter(
     dependencies=[Depends(db)],
     responses={404: {"description": "Not found"}},
 )
+
 
 # get users lists of playlists
 @playlist_router.get("/playlist/me", response_model=schemas.PlaylistList)

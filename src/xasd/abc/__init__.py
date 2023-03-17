@@ -62,7 +62,7 @@ class AbstractWorker(ABC):
                         f"Failed to connect to AMQP after {connection_attempts} attempts. Exiting."
                     )
                     raise e
-                logger.warning(f"Failed to connect to AMQP. Retrying in 5 seconds.")
+                logger.warning("Failed to connect to AMQP. Retrying in 5 seconds.")
                 await asyncio.sleep(5)
 
     async def watch(self, opts: dict):
