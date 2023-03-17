@@ -5,14 +5,14 @@ const FILE_URL = `https://f000.backblazeb2.com/file/xasdmedia/`
 export const alert = reactive({
     message: null,
     type: null,
-    show(message, type) {
+    show(message, type, timeout = 5000) {
         this.message = message
         this.type = type
 
         setTimeout(() => {
             console.log("hiding alert")
             this.hide()
-        }, 5000)
+        }, timeout)
     },
     hide() {
         this.message = null
@@ -22,7 +22,7 @@ export const alert = reactive({
         return this.message !== null
     },
     alert_class() {
-        const base_class = 'z-1 opacity-75 position-fixed w-50 alert alert-dismissible fade show'
+        const base_class = 'z-3 opacity-75 position-fixed w-50 alert alert-dismissible fade show'
         if (this.type === 'success') {
             return base_class + ' alert-success'
         } else if (this.type === 'error') {
@@ -277,6 +277,7 @@ export const now_playing = reactive({
     add_to_queue(track) {
         console.log("add_to_queue", track, this.track_list)
         this.track_list.push(track)
+        alert.show("Added to queue", "success", 1000)
     },
     remove_from_queue(track) {
         this.track_list = this.track_list.filter(t => t.track_id !== track.track_id)

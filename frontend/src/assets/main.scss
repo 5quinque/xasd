@@ -29,6 +29,10 @@ $form-range-track-bg: $primary;
 //     background-color: #9a905d;
 // }
 
+input:-webkit-autofill {
+    background: none;
+}
+
 
 // @media screen and (-webkit-min-device-pixel-ratio:0) {
 //     input[type='range'] {

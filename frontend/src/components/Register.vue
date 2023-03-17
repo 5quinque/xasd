@@ -25,12 +25,14 @@ async function submit() {
     const data = await response.json();
 
     if (!response.ok) {
-        console.log('error', data.detail)
-        alert.show(data.detail[0].msg, 'error')
+        // if data.detail is an array then display the first error message
+        if (Array.isArray(data.detail)) {
+            alert.show(data.detail[0].msg, 'error')
+        } else {
+            alert.show(data.detail, 'error')
+        }
         return
     }
-
-    console.log('data', data)
 
     alert.show('Registered successfully', 'success')
 }

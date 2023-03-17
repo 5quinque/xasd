@@ -17,10 +17,11 @@ import IconViewList from './components/icons/IconViewList.vue'
             <div class="row flex-fill" style="min-height:0">
                 <div class="col-2 mh-100 d-flex flex-column flex-shrink-0 p-3"
                     style="background-color: var( --bs-dark-bg-subtle );">
-                    <a href=" /" class="d-flex align-items-center mb-3 mb-md-0 me-md-auto text-light text-decoration-none">
+                    <RouterLink to="/"
+                        class="d-flex align-items-center mb-3 mb-md-0 me-md-auto text-light text-decoration-none">
                         <img alt="logo" class="logo" src="@/assets/logo.svg" width="60" height="60" />
                         <span class="fs-4">Xasd</span>
-                    </a>
+                    </RouterLink>
                     <hr>
                     <ul class="nav nav-pills flex-column mb-auto">
                         <li class="nav-item">
