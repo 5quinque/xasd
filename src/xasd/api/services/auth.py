@@ -22,7 +22,7 @@ class Auth:
             self._secret_key = os.environ.get("JWT_SECRET_KEY")
         if self._secret_key is None:
             raise ValueError(
-                """Provide a valid secret key by setting the `JWT_SECRET_KEY` environment variable. 
+                """Provide a valid secret key by setting the `JWT_SECRET_KEY` environment variable.
                 You can generate one with: openssl rand -hex 32"""
             )
 
@@ -33,7 +33,7 @@ class Auth:
         return self.pwd_context.hash(password)
 
     def authenticate_user(self, username: str, password: str):
-        user = self.db.get(models.User, filter=[models.User.name == username])
+        user = self.db.user.get(username)
 
         if not user:
             return False
@@ -50,13 +50,11 @@ class Auth:
         return encoded_jwt
 
     def register_user(self, user: models.User):
-        db_user = self.db.get(models.User, filter=[models.User.name == user.name])
+        db_user = self.db.user.get(user.name)
         if db_user:
             return None
-            # raise ValueError("User already exists")
 
-        return self.db.create(
-            models.User,
+        return self.db.user.create(
             name=user.name,
             password_hash=self.password_hash(user.plaintext_password),
             email_address=user.email_address,
@@ -85,9 +83,7 @@ class Auth:
         except JWTError:
             return False
 
-        user = self.db.get(
-            models.User, filter=[models.User.name == token_data.username]
-        )
+        user = self.db.user.get(token_data.username)
         if user is None:
             return False
 

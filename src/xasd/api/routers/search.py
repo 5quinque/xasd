@@ -25,6 +25,6 @@ def search_any(query: str, db: XasdDB = Depends(db)):
 
 @search_router.get("/track/{query}", response_model=list[schemas.Track])
 def search_track(query: str, db: XasdDB = Depends(db)):
-    db_results = db.search_track(query)
+    db_results = db.track.search(query)
 
     return db_results

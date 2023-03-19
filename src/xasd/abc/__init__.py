@@ -119,7 +119,8 @@ class AbstractWorker(ABC):
         """
         A producer function that watches the given path.
 
-        This function monitors the given `path` for file changes, and places the changed file paths in the provided `asyncio_queue`.
+        This function monitors the given `path` for file changes, and places the changed file
+        paths in the provided `asyncio_queue`.
         If a new directory is created,
         it will be added to the watch list.
 

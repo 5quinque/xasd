@@ -1,5 +1,4 @@
 import os
-import functools
 import logging
 import time
 from typing import Optional, Tuple, Union
@@ -8,20 +7,29 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy import create_engine, exc as sqlalchemy_exc
 
 from xasd.database import Base
-from xasd.database.models import Album, Artist, File, Genre, Magnet, Track, Hash
+from xasd.database.models import (
+    Album,
+    Artist,
+    File,
+    Genre,
+    Magnet,
+    Track,
+    Hash,
+)
+
+from xasd.database.crud.table.artist import Artist as ArtistCRUD
+from xasd.database.crud.table.file import File as FileCRUD
+from xasd.database.crud.table.playlist import Playlist as PlaylistCRUD
+from xasd.database.crud.table.track import Track as TrackCRUD
+from xasd.database.crud.table.user import User as UserCRUD
+from xasd.database.crud.table.genre import Genre as GenreCRUD
+from xasd.database.crud.table.album import Album as AlbumCRUD
+from xasd.database.crud.table.hash import Hash as HashCRUD
 
 logger = logging.getLogger(__name__)
 
-# [TODO] Break down the CRUD operations into separate modules
+# [TODO] Continue to break down the CRUD operations into separate modules
 # e.g. user, track, artist, etc.
-# create an abstract base class for the CRUD operations with the methods:
-# - get
-# - create
-# - search
-# - api_get
-#
-# How do we make them all share one session?
-# Keep XasdDB as a singleton and pass the session to the CRUD objects
 
 
 class XasdDB:
@@ -35,6 +43,15 @@ class XasdDB:
             )
 
         self._db_connect()
+
+        self.album = AlbumCRUD(self._session)
+        self.artist = ArtistCRUD(self._session)
+        self.file = FileCRUD(self._session)
+        self.genre = GenreCRUD(self._session)
+        self.hash = HashCRUD(self._session)
+        self.playlist = PlaylistCRUD(self._session)
+        self.track = TrackCRUD(self._session)
+        self.user = UserCRUD(self._session)
 
     def _db_connect(self):
         """Connect to the database and create all relevant tables if they don't exist"""
@@ -65,96 +82,11 @@ class XasdDB:
                         f"Failed to connect to database after {connection_attempts} attempts. Exiting."
                     )
                     raise e
-                logger.warning(f"Failed to connect to base. Retrying in 5 seconds.")
+                logger.warning("Failed to connect to base. Retrying in 5 seconds.")
                 time.sleep(5)
 
         Session = sessionmaker(bind=self.__engine)
         self._session = Session()
-
-    def get(self, table, filter=False, create=False, **kwargs):
-        """Get an entity if one doesn't exist with the given name (or by given filter)
-        Args:
-            table (Table): Table object you want to look/create the row
-            filter (bool, optional): Optional `where` list . Defaults to False which is filter by `name` column.
-            create (bool, optional): Create an entity if one doesn't exist
-
-        Returns:
-            (object, None): pre-existing or newly created entity object, or `None` if no entity is found and `create=False`
-
-        n.b.
-            I don't think there is a single transitive verb that can be used to describe both "getting" and "creating" at the same time.
-            The verb "get" can be used to mean "acquire" something that already exists.
-            The verb "create" can be used to mean "bring into existence" or "cause to exist" something that did not previously exist.
-            Hopefully "get" isn't too confusing for what this method actually does.
-        """
-        if not filter:
-            filter = [table.name == kwargs["name"]]
-
-        entity = self._session.query(table).filter(*filter).first()
-
-        if entity:
-            return entity
-
-        if not create:
-            return None
-
-        new_entity = table(**kwargs)
-        self._session.add(new_entity)
-        self._session.commit()
-
-        return new_entity
-
-    create = functools.partialmethod(get, create=True)
-
-    def search_track(self, query):
-        """Search for a track by name
-
-        Args:
-            query (str): String to search for
-
-        Returns:
-            list[Track]: List of tracks
-        """
-        return self.search(Track, query, Track.title)
-
-    def search_artist(self, query):
-        """Search for an artist by name
-
-        Args:
-            query (str): String to search for
-
-        Returns:
-            list[Artist]: List of artists
-        """
-        return self.search(Artist, query, Artist.name)
-
-    def search_album(self, query):
-        """Search for an album by name
-
-        Args:
-            query (str): String to search for
-
-        Returns:
-            list[Album]: List of albums
-        """
-        return self.search(Album, query, Album.name)
-
-    def search(self, table, query, query_column):
-        """Search for an entity by name
-
-        Args:
-            table (Table): Table object you want to query
-            query (str): String to search for
-
-        Returns:
-            list[entity]: List of entities
-
-        n.b.
-            This is a very simple search that just looks for the query string anywhere in the title.
-            It's not very good, but it's good enough for now.
-        """
-
-        return self._session.query(table).filter(query_column.ilike(f"%{query}%")).all()
 
     def search_all(self, query):
         """Search for an entity by name
@@ -170,9 +102,9 @@ class XasdDB:
             It's not very good, but it's good enough for now.
         """
         return {
-            "tracks": self.search_track(query),
-            "artists": self.search_artist(query),
-            "albums": self.search_album(query),
+            "tracks": self.track.search(query),
+            "artists": self.artist.search(query),
+            "albums": self.album.search(query),
         }
 
     def api_get(self, table, filter=[], skip=0, limit=100):
@@ -257,20 +189,9 @@ class XasdDB:
             Union[bool, Hash]: False if the hash already exists in the database,
             otherwise returns the entity representing the added hash.
         """
-        if self.get(
-            Hash,
-            filter=[
-                Hash.hash == hash,
-            ],
-        ):
+        if self.hash.get(hash):
             return False
-        return self.create(
-            Hash,
-            filter=[
-                Hash.hash == hash,
-            ],
-            hash=hash,
-        )
+        return self.hash.create(hash=hash)
 
     def add_magnet(self, infohash: str) -> Union[bool, Magnet]:
         """

@@ -2,7 +2,7 @@
 """
 
 from datetime import datetime
-from typing import Optional, Union
+from typing import Optional
 
 from pydantic import BaseModel
 from pydantic.networks import EmailStr

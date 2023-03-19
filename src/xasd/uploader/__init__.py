@@ -116,7 +116,10 @@ class Uploader(AbstractWorker):
         else, assume it's a file we've been given from inotify and upload the individual file
 
         Args:
-            item (Any): The item representing a file to be uploaded. If `self.producer_method` is equal to "amqp", `item` should be an instance of `aiormq.Message` and contains a JSON-encoded string with the key "download_path" representing the file path. If `self.producer_method` is not equal to "amqp", `item` should be the file path string.
+            item (Any): The item representing a file to be uploaded.
+                If `self.producer_method` is equal to "amqp", `item` should be an instance of `aiormq.Message`
+                and contains a JSON-encoded string with the key "download_path" representing the file path.
+                If `self.producer_method` is not equal to "amqp", `item` should be the file path string.
 
         Returns: None
         """

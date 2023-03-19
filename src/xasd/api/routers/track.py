@@ -14,7 +14,7 @@ track_router = APIRouter(
 
 # Tracks endpoints
 @track_router.get("/", response_model=list[schemas.Track])
-def read_track(skip: int = 0, limit: int = 100, db: XasdDB = Depends(db)):
+def read_tracks(skip: int = 0, limit: int = 100, db: XasdDB = Depends(db)):
     db_tracks = db.api_get(models.Track)
 
     return db_tracks
@@ -22,7 +22,7 @@ def read_track(skip: int = 0, limit: int = 100, db: XasdDB = Depends(db)):
 
 @track_router.get("/{track_id}", response_model=schemas.Track)
 def read_track(track_id: int, db: XasdDB = Depends(db)):
-    db_track = db.get(models.Track, filter=[models.Track.track_id == track_id])
+    db_track = db.track.get(filter=[models.Track.track_id == track_id])
 
     if db_track is None:
         raise HTTPException(status_code=404, detail="Track not found")
@@ -33,9 +33,19 @@ def read_track(track_id: int, db: XasdDB = Depends(db)):
 # get file info by track
 @track_router.get("/{track_id}/file", response_model=schemas.File)
 def read_file(track_id: int, db: XasdDB = Depends(db)):
-    track = db.get(models.Track, filter=[models.Track.track_id == track_id])
-    db_file = db.get(models.File, filter=[models.File.track == track])
+    track = db.track.get(filter=[models.Track.track_id == track_id])
+    db_file = db.file.get(track)
 
     if db_file is None:
         raise HTTPException(status_code=404, detail="File not found")
     return db_file
+
+
+# # map track parameter to entity
+# @track_router.get("/{track_id}/file", response_model=schemas.File)
+# def read_file(track: models.Track = Depends(db.get_entity(models.Track))):
+#     db_file = db.get(models.File, filter=[models.File.track == track])
+
+#     if db_file is None:
+#         raise HTTPException(status_code=404, detail="File not found")
+#     return db_file

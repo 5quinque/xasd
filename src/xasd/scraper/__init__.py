@@ -75,7 +75,7 @@ class Scraper:
                         f"Failed to connect to AMQP after {connection_attempts} attempts. Exiting."
                     )
                     raise e
-                logger.warning(f"Failed to connect to AMQP. Retrying in 5 seconds.")
+                logger.warning("Failed to connect to AMQP. Retrying in 5 seconds.")
                 await asyncio.sleep(5)
 
     async def watch(self, opts: dict):
@@ -159,9 +159,9 @@ async def _main():
     setup_logging(opts)
 
     sources = [
-        # limetorrent.LimeTorrent(),
-        # z1337x.Z1337x(),
-        # demonoid.Demonoid(),
+        limetorrent.LimeTorrent(),
+        z1337x.Z1337x(),
+        demonoid.Demonoid(),
     ]
     tasks = []
 

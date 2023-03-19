@@ -19,7 +19,7 @@ playlist_router = APIRouter(
 @playlist_router.get("/playlist/me", response_model=schemas.PlaylistList)
 async def read_playlists_me(current_user: schemas.User = Depends(get_current_user)):
     if current_user:
-        return current_user.playlists
+        return {"playlists": current_user.playlists}
 
     # manage and log different exceptions
     # e.g. expired token, invalid token, etc. (from JWTError in auth:Auth.user)
@@ -61,14 +61,14 @@ async def options_playlist():
     return Response(
         headers={
             "Access-Control-Allow-Origin": "*",
-            "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+            "Access-Control-Allow-Methods": "OPTIONS, POST",
             "Access-Control-Allow-Headers": "accept, Authorization",
         }
     )
 
 
 # add a track to a playlist for the current user
-@playlist_router.post(
+@playlist_router.patch(
     "/playlist/{playlist_id}/track/{track_id}",
     response_model=schemas.Playlist,
     status_code=201,
@@ -80,9 +80,59 @@ async def add_track_to_playlist(
     db: XasdDB = Depends(db),
 ):
     if current_user:
-        return db.add_track_to_playlist(
+        return db.playlist.add_track_to_playlist(
             playlist_id=playlist_id,
             track_id=track_id,
+            user_id=current_user.user_id,
+        )
+
+    raise HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Could not validate credentials",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
+
+
+# remove a track from a playlist for the current user
+@playlist_router.delete(
+    "/playlist/{playlist_id}/track/{track_id}",
+    response_model=schemas.Playlist,
+    status_code=201,
+)
+async def remove_track_from_playlist(
+    playlist_id: int,
+    track_id: int,
+    current_user: schemas.User = Depends(get_current_user),
+    db: XasdDB = Depends(db),
+):
+    if current_user:
+        return db.remove_track_from_playlist(
+            playlist_id=playlist_id,
+            track_id=track_id,
+            user_id=current_user.user_id,
+        )
+
+    raise HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Could not validate credentials",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
+
+
+# delete playlist for the current user
+@playlist_router.delete(
+    "/playlist/{playlist_id}",
+    response_model=schemas.Playlist,
+    status_code=201,
+)
+async def delete_playlist(
+    playlist_id: int,
+    current_user: schemas.User = Depends(get_current_user),
+    db: XasdDB = Depends(db),
+):
+    if current_user:
+        return db.delete(
+            playlist_id=playlist_id,
             user_id=current_user.user_id,
         )
 
