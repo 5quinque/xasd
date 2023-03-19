@@ -16,22 +16,13 @@ user_router = APIRouter(
 )
 
 
-@user_router.get(
-    "/user/me",
-    response_model=schemas.User,
-    responses={
-        401: {
-            "description": "Unauthorized",
-            "headers": {"WWW-Authenticate": {"description": "Bearer"}},
-        }
-    },
-)
+@user_router.get("/user/me", response_model=schemas.User)
 async def read_users_me(current_user: schemas.User = Depends(get_current_user)):
     if current_user:
         return current_user
 
     raise HTTPException(
-        status_code=status.HTTP_401_UNAUTHORIZED,
+        status_code=401,
         detail="Not authenticated",
         headers={"WWW-Authenticate": "Bearer"},
     )

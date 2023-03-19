@@ -52,6 +52,19 @@ def test_login(create_user, client):
     assert "access_token" in response.json()
 
 
+def test_login_invalid_credentials(create_user, client):
+    response = client.post(
+        "/token",
+        data={
+            "grant_type": "password",
+            "username": "username",
+            "password": "invalid_password",
+        },
+    )
+    assert response.status_code == 401
+    assert response.json() == {"detail": "Incorrect username or password"}
+
+
 def test_login_nonexistent(client):
     response = client.post(
         "/token",

@@ -21,11 +21,9 @@ async def read_playlists_me(current_user: schemas.User = Depends(get_current_use
     if current_user:
         return {"playlists": current_user.playlists}
 
-    # manage and log different exceptions
-    # e.g. expired token, invalid token, etc. (from JWTError in auth:Auth.user)
     raise HTTPException(
-        status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Could not validate credentials",
+        status_code=401,
+        detail="Not authenticated",
         headers={"WWW-Authenticate": "Bearer"},
     )
 
@@ -48,8 +46,8 @@ async def create_playlist(
         )
 
     raise HTTPException(
-        status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Could not validate credentials",
+        status_code=401,
+        detail="Not authenticated",
         headers={"WWW-Authenticate": "Bearer"},
     )
 
@@ -79,6 +77,20 @@ async def add_track_to_playlist(
     db: XasdDB = Depends(db),
 ):
     if current_user:
+        playlist = db.playlist.get(filter=[models.Playlist.playlist_id == playlist_id])
+        if not playlist or playlist.owner_id != current_user.user_id:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Playlist not found",
+            )
+
+        track = db.track.get(filter=[models.Track.track_id == track_id])
+        if not track:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Track not found",
+            )
+
         return db.playlist.add_track_to_playlist(
             playlist_id=playlist_id,
             track_id=track_id,
@@ -86,8 +98,8 @@ async def add_track_to_playlist(
         )
 
     raise HTTPException(
-        status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Could not validate credentials",
+        status_code=401,
+        detail="Not authenticated",
         headers={"WWW-Authenticate": "Bearer"},
     )
 
@@ -105,6 +117,20 @@ async def remove_track_from_playlist(
     db: XasdDB = Depends(db),
 ):
     if current_user:
+        playlist = db.playlist.get(filter=[models.Playlist.playlist_id == playlist_id])
+        if not playlist or playlist.owner_id != current_user.user_id:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Playlist not found",
+            )
+
+        track = db.track.get(filter=[models.Track.track_id == track_id])
+        if not track:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Track not found",
+            )
+
         return db.playlist.remove_track_from_playlist(
             playlist_id=playlist_id,
             track_id=track_id,
@@ -112,8 +138,8 @@ async def remove_track_from_playlist(
         )
 
     raise HTTPException(
-        status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Could not validate credentials",
+        status_code=401,
+        detail="Not authenticated",
         headers={"WWW-Authenticate": "Bearer"},
     )
 
@@ -121,8 +147,7 @@ async def remove_track_from_playlist(
 # delete playlist for the current user
 @playlist_router.delete(
     "/playlist/{playlist_id}",
-    response_model=schemas.Playlist,
-    status_code=201,
+    status_code=204,
 )
 async def delete_playlist(
     playlist_id: int,
@@ -130,13 +155,18 @@ async def delete_playlist(
     db: XasdDB = Depends(db),
 ):
     if current_user:
-        return db.playlist.delete(
-            playlist_id=playlist_id,
-            user_id=current_user.user_id,
-        )
+        playlist = db.playlist.get(filter=[models.Playlist.playlist_id == playlist_id])
+        if not playlist or playlist.owner_id != current_user.user_id:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Playlist not found",
+            )
+        playlist = db.playlist.get(filter=[models.Playlist.playlist_id == playlist_id])
+        db.playlist.delete(playlist)
+        return Response(status_code=204)
 
     raise HTTPException(
-        status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Could not validate credentials",
+        status_code=401,
+        detail="Not authenticated",
         headers={"WWW-Authenticate": "Bearer"},
     )
