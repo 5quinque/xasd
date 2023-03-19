@@ -88,8 +88,7 @@ def create_playlist(create_token, create_track):
     user = db.user.get("username")
     track = db.track.get(filter=[models.Track.title == "track_title"])
 
-    playlist = db.create(
-        models.Playlist,
+    playlist = db.playlist.create(
         filter=[models.Playlist.name == "playlist_name"],
         name="playlist_name",
         owner=user,

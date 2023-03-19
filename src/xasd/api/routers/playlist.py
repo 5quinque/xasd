@@ -38,8 +38,7 @@ async def create_playlist(
     db: XasdDB = Depends(db),
 ):
     if current_user:
-        return db.create(
-            models.Playlist,
+        return db.playlist.create(
             filter=[
                 models.Playlist.name == playlist.name
                 and models.Playlist.user_id == current_user.id
@@ -106,7 +105,7 @@ async def remove_track_from_playlist(
     db: XasdDB = Depends(db),
 ):
     if current_user:
-        return db.remove_track_from_playlist(
+        return db.playlist.remove_track_from_playlist(
             playlist_id=playlist_id,
             track_id=track_id,
             user_id=current_user.user_id,
@@ -131,7 +130,7 @@ async def delete_playlist(
     db: XasdDB = Depends(db),
 ):
     if current_user:
-        return db.delete(
+        return db.playlist.delete(
             playlist_id=playlist_id,
             user_id=current_user.user_id,
         )
