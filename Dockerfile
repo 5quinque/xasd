@@ -1,5 +1,5 @@
 # Use an official Python runtime as the base image
-FROM python:3.9 as builder
+FROM python:3.10 as builder
 
 # Set the working directory in the container
 WORKDIR /app
@@ -21,7 +21,7 @@ COPY ./requirements.txt ./
 RUN pip wheel --no-cache-dir --no-deps --wheel-dir /wheels -r requirements.txt
 
 # Use a slim image for the final stage
-FROM python:3.9-slim
+FROM python:3.10-slim
 
 # Set the working directory in the container
 WORKDIR /app

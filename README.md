@@ -1,7 +1,7 @@
 # xasd
 
 ```
-python3.9 -v venv venv
+python3.10 -v venv venv
 source venv/bin/activate
 pip install -e .
 ```
