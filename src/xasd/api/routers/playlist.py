@@ -1,23 +1,22 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, HTTPException, status
 from fastapi.responses import Response
 
-from xasd.api.dependencies import db, get_current_user
+from xasd.api import dependencies
 
 from xasd.database import models, schemas
-from xasd.database.crud import XasdDB
 
 
 playlist_router = APIRouter(
-    # prefix="/",
+    prefix="/playlist",
     tags=["Playlist"],
-    dependencies=[Depends(db)],
+    # dependencies=[Depends(db)],
     responses={404: {"description": "Not found"}},
 )
 
 
 # get users lists of playlists
-@playlist_router.get("/playlist/me", response_model=schemas.PlaylistList)
-async def read_playlists_me(current_user: schemas.User = Depends(get_current_user)):
+@playlist_router.get("/me", response_model=schemas.PlaylistList)
+async def read_playlists_me(current_user: dependencies.current_user):
     if current_user:
         return {"playlists": current_user.playlists}
 
@@ -29,11 +28,11 @@ async def read_playlists_me(current_user: schemas.User = Depends(get_current_use
 
 
 # create a new playlist for the current user
-@playlist_router.post("/playlist", response_model=schemas.Playlist, status_code=201)
+@playlist_router.post("/", response_model=schemas.Playlist, status_code=201)
 async def create_playlist(
     playlist: schemas.PlaylistCreate,
-    current_user: schemas.User = Depends(get_current_user),
-    db: XasdDB = Depends(db),
+    current_user: dependencies.current_user,
+    db: dependencies.database,
 ):
     if current_user:
         return db.playlist.create(
@@ -53,7 +52,7 @@ async def create_playlist(
 
 
 # preflight options req for /playlist
-@playlist_router.options("/playlist", response_model=schemas.Playlist)
+@playlist_router.options("/", response_model=schemas.Playlist)
 async def options_playlist():
     return Response(
         headers={
@@ -66,15 +65,15 @@ async def options_playlist():
 
 # add a track to a playlist for the current user
 @playlist_router.patch(
-    "/playlist/{playlist_id}/track/{track_id}",
+    "/{playlist_id}/track/{track_id}",
     response_model=schemas.Playlist,
     status_code=201,
 )
 async def add_track_to_playlist(
     playlist_id: int,
     track_id: int,
-    current_user: schemas.User = Depends(get_current_user),
-    db: XasdDB = Depends(db),
+    current_user: dependencies.current_user,
+    db: dependencies.database,
 ):
     if current_user:
         playlist = db.playlist.get(filter=[models.Playlist.playlist_id == playlist_id])
@@ -106,15 +105,15 @@ async def add_track_to_playlist(
 
 # remove a track from a playlist for the current user
 @playlist_router.delete(
-    "/playlist/{playlist_id}/track/{track_id}",
+    "/{playlist_id}/track/{track_id}",
     response_model=schemas.Playlist,
     status_code=201,
 )
 async def remove_track_from_playlist(
     playlist_id: int,
     track_id: int,
-    current_user: schemas.User = Depends(get_current_user),
-    db: XasdDB = Depends(db),
+    current_user: dependencies.current_user,
+    db: dependencies.database,
 ):
     if current_user:
         playlist = db.playlist.get(filter=[models.Playlist.playlist_id == playlist_id])
@@ -146,13 +145,13 @@ async def remove_track_from_playlist(
 
 # delete playlist for the current user
 @playlist_router.delete(
-    "/playlist/{playlist_id}",
+    "/{playlist_id}",
     status_code=204,
 )
 async def delete_playlist(
     playlist_id: int,
-    current_user: schemas.User = Depends(get_current_user),
-    db: XasdDB = Depends(db),
+    current_user: dependencies.current_user,
+    db: dependencies.database,
 ):
     if current_user:
         playlist = db.playlist.get(filter=[models.Playlist.playlist_id == playlist_id])

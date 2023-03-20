@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.responses import Response
 from fastapi.security import OAuth2PasswordRequestForm
 
-from xasd.api.dependencies import auth, db, get_current_user
+from xasd.api import dependencies
 
 from xasd.api.services.auth import Auth
 from xasd.database import schemas
@@ -11,13 +11,13 @@ from xasd.database import schemas
 user_router = APIRouter(
     # prefix="/",
     tags=["User"],
-    dependencies=[Depends(db)],
+    # dependencies=[Depends(db)],
     responses={404: {"description": "Not found"}},
 )
 
 
 @user_router.get("/user/me", response_model=schemas.User)
-async def read_users_me(current_user: schemas.User = Depends(get_current_user)):
+async def read_users_me(current_user: dependencies.current_user):
     if current_user:
         return current_user
 
@@ -42,7 +42,7 @@ async def options_user_me():
 
 @user_router.post("/token", response_model=schemas.Token)
 async def login(
-    form_data: OAuth2PasswordRequestForm = Depends(), auth: Auth = Depends(auth)
+    auth: dependencies.auth, form_data: OAuth2PasswordRequestForm = Depends()
 ):
     user = auth.authenticate_user(form_data.username, form_data.password)
     if not user:
@@ -54,7 +54,7 @@ async def login(
 
 
 @user_router.post("/user", response_model=schemas.User, status_code=201)
-async def create_user(user: schemas.UserCreate, auth: Auth = Depends(auth)):
+async def create_user(user: schemas.UserCreate, auth: dependencies.auth):
     # "registering" a user is more of a "crud" task. We will probably move that.
     # creating of the token still requires `auth`.
     db_user = auth.register_user(user)

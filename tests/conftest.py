@@ -96,3 +96,9 @@ def create_playlist(create_token, create_track):
     )
 
     yield {"token": create_token, "playlist": playlist}
+
+
+# @pytest.fixture(scope="function")
+# def mp3_file():
+#     with open("tests/fixtures/track.mp3", "rb") as f:
+#         yield f

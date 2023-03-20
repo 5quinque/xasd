@@ -1,3 +1,5 @@
+from typing import Annotated
+
 from fastapi import Depends
 from fastapi.security import OAuth2PasswordBearer
 
@@ -8,8 +10,7 @@ from xasd.database.crud import XasdDB
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
 
-# Dependency
-def db():
+def _db():
     db = XasdDB()
     try:
         yield db
@@ -17,7 +18,14 @@ def db():
         del db
 
 
-def auth(db: XasdDB = Depends(db)):
+async def _pagination_parameters(page: int = 1):
+    skip = (page - 1) * 50
+    limit = 50
+
+    return {"skip": skip, "limit": limit}
+
+
+def _auth(db: XasdDB = Depends(_db)):
     auth = Auth(db)
     try:
         yield auth
@@ -25,11 +33,17 @@ def auth(db: XasdDB = Depends(db)):
         del auth
 
 
-async def get_current_user(
-    auth: Auth = Depends(auth), token: str = Depends(oauth2_scheme)
+async def _current_user(
+    auth: Auth = Depends(_auth), token: str = Depends(oauth2_scheme)
 ):
     user = auth.user(token)
     if user:
         return user
 
     return False
+
+
+database = Annotated[XasdDB, Depends(_db)]
+pagination_parameters = Annotated[dict, Depends(_pagination_parameters)]
+auth = Annotated[Auth, Depends(_auth)]
+current_user = Annotated[bool, Depends(_current_user)]

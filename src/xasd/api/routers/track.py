@@ -1,27 +1,27 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, HTTPException
 
-from xasd.api.dependencies import db
+from xasd.api import dependencies
 from xasd.database import schemas, models
-from xasd.database.crud import XasdDB
 
 track_router = APIRouter(
     prefix="/track",
     tags=["Track"],
-    dependencies=[Depends(db)],
     responses={404: {"description": "Not found"}},
 )
 
 
-# Tracks endpoints
 @track_router.get("/", response_model=list[schemas.Track])
-def read_tracks(skip: int = 0, limit: int = 100, db: XasdDB = Depends(db)):
+def read_tracks(
+    pagination: dependencies.pagination_parameters, db: dependencies.database
+):
+    print(pagination)
     db_tracks = db.api_get(models.Track)
 
     return db_tracks
 
 
 @track_router.get("/{track_id}", response_model=schemas.Track)
-def read_track(track_id: int, db: XasdDB = Depends(db)):
+def read_track(track_id: int, db: dependencies.database):
     db_track = db.track.get(filter=[models.Track.track_id == track_id])
 
     if db_track is None:
@@ -30,9 +30,8 @@ def read_track(track_id: int, db: XasdDB = Depends(db)):
     return db_track
 
 
-# get file info by track
 @track_router.get("/{track_id}/file", response_model=schemas.File)
-def read_file(track_id: int, db: XasdDB = Depends(db)):
+def read_file(track_id: int, db: dependencies.database):
     track = db.track.get(filter=[models.Track.track_id == track_id])
     db_file = db.file.get(track)
 
