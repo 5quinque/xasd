@@ -18,14 +18,7 @@ user_router = APIRouter(
 
 @user_router.get("/user/me", response_model=schemas.User)
 async def read_users_me(current_user: dependencies.current_user):
-    if current_user:
-        return current_user
-
-    raise HTTPException(
-        status_code=401,
-        detail="Not authenticated",
-        headers={"WWW-Authenticate": "Bearer"},
-    )
+    return current_user
 
 
 # preflight options req for /user/me

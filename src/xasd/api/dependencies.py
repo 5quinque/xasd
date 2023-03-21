@@ -1,10 +1,11 @@
 from typing import Annotated
 
-from fastapi import Depends
+from fastapi import Depends, HTTPException
 from fastapi.security import OAuth2PasswordBearer
 
 from xasd.api.services.auth import Auth
 from xasd.database.crud import XasdDB
+from xasd.database import schemas, models
 
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
@@ -40,10 +41,44 @@ async def _current_user(
     if user:
         return user
 
-    return False
+    raise HTTPException(
+        status_code=401,
+        detail="Not authenticated",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
 
 
-database = Annotated[XasdDB, Depends(_db)]
-pagination_parameters = Annotated[dict, Depends(_pagination_parameters)]
+def _track(track_id: int, db: XasdDB = Depends(_db)):
+    db_track = db.track.get(filter=[models.Track.track_id == track_id])
+
+    if db_track is None:
+        raise HTTPException(status_code=404, detail="Track not found")
+
+    return db_track
+
+
+def _file(track: schemas.Track = Depends(_track), db: XasdDB = Depends(_db)):
+    db_file = db.file.get(track)
+
+    if db_file is None:
+        raise HTTPException(status_code=404, detail="File not found")
+
+    return db_file
+
+
+def _artist(artist_name: str, db: XasdDB = Depends(_db)):
+    db_artist = db.artist.get(artist_name)
+
+    if db_artist is None:
+        raise HTTPException(status_code=404, detail="Artist not found")
+
+    return db_artist
+
+
+artist = Annotated[schemas.Artist, Depends(_artist)]
 auth = Annotated[Auth, Depends(_auth)]
 current_user = Annotated[bool, Depends(_current_user)]
+database = Annotated[XasdDB, Depends(_db)]
+file = Annotated[schemas.File, Depends(_file)]
+pagination_parameters = Annotated[dict, Depends(_pagination_parameters)]
+track = Annotated[schemas.Track, Depends(_track)]

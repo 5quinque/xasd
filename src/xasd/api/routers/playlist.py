@@ -9,7 +9,6 @@ from xasd.database import models, schemas
 playlist_router = APIRouter(
     prefix="/playlist",
     tags=["Playlist"],
-    # dependencies=[Depends(db)],
     responses={404: {"description": "Not found"}},
 )
 
@@ -17,14 +16,7 @@ playlist_router = APIRouter(
 # get users lists of playlists
 @playlist_router.get("/me", response_model=schemas.PlaylistList)
 async def read_playlists_me(current_user: dependencies.current_user):
-    if current_user:
-        return {"playlists": current_user.playlists}
-
-    raise HTTPException(
-        status_code=401,
-        detail="Not authenticated",
-        headers={"WWW-Authenticate": "Bearer"},
-    )
+    return {"playlists": current_user.playlists}
 
 
 # create a new playlist for the current user
@@ -34,20 +26,13 @@ async def create_playlist(
     current_user: dependencies.current_user,
     db: dependencies.database,
 ):
-    if current_user:
-        return db.playlist.create(
-            filter=[
-                models.Playlist.name == playlist.name
-                and models.Playlist.user_id == current_user.id
-            ],
-            name=playlist.name,
-            owner_id=current_user.user_id,
-        )
-
-    raise HTTPException(
-        status_code=401,
-        detail="Not authenticated",
-        headers={"WWW-Authenticate": "Bearer"},
+    return db.playlist.create(
+        filter=[
+            models.Playlist.name == playlist.name
+            and models.Playlist.user_id == current_user.id
+        ],
+        name=playlist.name,
+        owner_id=current_user.user_id,
     )
 
 
@@ -75,31 +60,24 @@ async def add_track_to_playlist(
     current_user: dependencies.current_user,
     db: dependencies.database,
 ):
-    if current_user:
-        playlist = db.playlist.get(filter=[models.Playlist.playlist_id == playlist_id])
-        if not playlist or playlist.owner_id != current_user.user_id:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="Playlist not found",
-            )
-
-        track = db.track.get(filter=[models.Track.track_id == track_id])
-        if not track:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="Track not found",
-            )
-
-        return db.playlist.add_track_to_playlist(
-            playlist_id=playlist_id,
-            track_id=track_id,
-            user_id=current_user.user_id,
+    playlist = db.playlist.get(filter=[models.Playlist.playlist_id == playlist_id])
+    if not playlist or playlist.owner_id != current_user.user_id:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Playlist not found",
         )
 
-    raise HTTPException(
-        status_code=401,
-        detail="Not authenticated",
-        headers={"WWW-Authenticate": "Bearer"},
+    track = db.track.get(filter=[models.Track.track_id == track_id])
+    if not track:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Track not found",
+        )
+
+    return db.playlist.add_track_to_playlist(
+        playlist_id=playlist_id,
+        track_id=track_id,
+        user_id=current_user.user_id,
     )
 
 
@@ -115,31 +93,24 @@ async def remove_track_from_playlist(
     current_user: dependencies.current_user,
     db: dependencies.database,
 ):
-    if current_user:
-        playlist = db.playlist.get(filter=[models.Playlist.playlist_id == playlist_id])
-        if not playlist or playlist.owner_id != current_user.user_id:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="Playlist not found",
-            )
-
-        track = db.track.get(filter=[models.Track.track_id == track_id])
-        if not track:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="Track not found",
-            )
-
-        return db.playlist.remove_track_from_playlist(
-            playlist_id=playlist_id,
-            track_id=track_id,
-            user_id=current_user.user_id,
+    playlist = db.playlist.get(filter=[models.Playlist.playlist_id == playlist_id])
+    if not playlist or playlist.owner_id != current_user.user_id:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Playlist not found",
         )
 
-    raise HTTPException(
-        status_code=401,
-        detail="Not authenticated",
-        headers={"WWW-Authenticate": "Bearer"},
+    track = db.track.get(filter=[models.Track.track_id == track_id])
+    if not track:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Track not found",
+        )
+
+    return db.playlist.remove_track_from_playlist(
+        playlist_id=playlist_id,
+        track_id=track_id,
+        user_id=current_user.user_id,
     )
 
 
@@ -153,19 +124,12 @@ async def delete_playlist(
     current_user: dependencies.current_user,
     db: dependencies.database,
 ):
-    if current_user:
-        playlist = db.playlist.get(filter=[models.Playlist.playlist_id == playlist_id])
-        if not playlist or playlist.owner_id != current_user.user_id:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="Playlist not found",
-            )
-        playlist = db.playlist.get(filter=[models.Playlist.playlist_id == playlist_id])
-        db.playlist.delete(playlist)
-        return Response(status_code=204)
-
-    raise HTTPException(
-        status_code=401,
-        detail="Not authenticated",
-        headers={"WWW-Authenticate": "Bearer"},
-    )
+    playlist = db.playlist.get(filter=[models.Playlist.playlist_id == playlist_id])
+    if not playlist or playlist.owner_id != current_user.user_id:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Playlist not found",
+        )
+    playlist = db.playlist.get(filter=[models.Playlist.playlist_id == playlist_id])
+    db.playlist.delete(playlist)
+    return Response(status_code=204)

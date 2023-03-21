@@ -43,4 +43,4 @@ def test_read_file(create_track, client):
 def test_read_file_nonexistent(env, client):
     response = client.get("/track/1/file")
     assert response.status_code == 404
-    assert response.json() == {"detail": "File not found"}
+    assert response.json() == {"detail": "Track not found"}
