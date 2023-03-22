@@ -75,10 +75,24 @@ def _artist(artist_name: str, db: XasdDB = Depends(_db)):
     return db_artist
 
 
+def _playlist(playlist_id: int, db: XasdDB = Depends(_db)):
+    """
+    We could add `current_user` as a dependency to `_playlist` and check
+    if the user is the owner of the playlist
+    """
+    db_playlist = db.playlist.get(filter=[models.Playlist.playlist_id == playlist_id])
+
+    if db_playlist is None:
+        raise HTTPException(status_code=404, detail="Playlist not found")
+
+    return db_playlist
+
+
 artist = Annotated[schemas.Artist, Depends(_artist)]
 auth = Annotated[Auth, Depends(_auth)]
 current_user = Annotated[bool, Depends(_current_user)]
 database = Annotated[XasdDB, Depends(_db)]
 file = Annotated[schemas.File, Depends(_file)]
 pagination_parameters = Annotated[dict, Depends(_pagination_parameters)]
+playlist = Annotated[schemas.Playlist, Depends(_playlist)]
 track = Annotated[schemas.Track, Depends(_track)]

@@ -13,42 +13,31 @@ class Playlist(Table):
 
         self.main_column = PlaylistModel.name
 
-    def add_track_to_playlist(self, playlist_id, track_id, user_id):
+    def add_track_to_playlist(self, playlist, track):
         """Add a track to a playlist
 
         Args:
-            playlist_id (int): Playlist id
-            track_id (int): Track id
-            user_id (int): User id
-        """
-        playlist = self.get(
-            filter=[
-                PlaylistModel.playlist_id == playlist_id
-                and PlaylistModel.user_id == user_id
-            ],
-        )
-        track = self.get(table=TrackModel, filter=[TrackModel.track_id == track_id])
+            playlist (PlaylistModel): Playlist
+            track (TrackModel): Track
 
+        Returns:
+            PlaylistModel: Playlist
+        """
         playlist.tracks.append(track)
         self._session.commit()
 
         return playlist
 
-    def remove_track_from_playlist(self, playlist_id, track_id, user_id):
+    def remove_track_from_playlist(self, playlist, track):
         """Remove a track from a playlist
 
         Args:
-            playlist_id (int): Playlist id
-            track_id (int): Track id
-            user_id (int): User id
+            playlist (PlaylistModel): Playlist
+            track (TrackModel): Track
+
+        Returns:
+            PlaylistModel: Playlist
         """
-        playlist = self.get(
-            filter=[
-                PlaylistModel.playlist_id == playlist_id
-                and PlaylistModel.user_id == user_id
-            ],
-        )
-        track = self.get(table=TrackModel, filter=[TrackModel.track_id == track_id])
         playlist.tracks.remove(track)
         self._session.commit()
 

@@ -1,4 +1,5 @@
 import { ref, reactive } from 'vue'
+import { Howl, Howler } from 'howler'
 
 const FILE_URL = `https://f000.backblazeb2.com/file/xasdmedia/`
 
@@ -103,12 +104,65 @@ export const auth = reactive({
         }
 
         const data = await response.json()
-        console.log("got user", data)
+        // console.log("got user", data)
         this.user = data
     }
 })
 
+
+// Find the users playlists
+export const playlists = reactive({
+    playlists: [],
+    async get_playlists() {
+        const requestOptions = {
+            method: "GET",
+            headers: new Headers({
+                'Authorization': `Bearer ${auth.token}`,
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            })
+        };
+        const response = await fetch("http://localhost:8000/playlist/me", requestOptions);
+        const data = await response.json();
+        this.playlists = data['playlists']
+    },
+    async create_playlist() {
+        if (!auth.is_authenticated()) {
+            alert.show('You must be logged in to create a playlist', 'error')
+            return
+        }
+        // generate a random playlist name starting with "playlist"
+        const playlist_name = "playlist" + Math.floor(Math.random() * 1000000)
+        const requestOptions = {
+            method: "POST",
+            headers: new Headers({
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${auth.token}`
+            }),
+            body: JSON.stringify({
+                "name": playlist_name
+            })
+        };
+        console.log("req opts", requestOptions)
+        const response = await fetch("http://localhost:8000/playlist/", requestOptions);
+        const data = await response.json();
+
+        if (!response.ok) {
+            console.log('error', data.detail)
+            alert.show(data.detail, 'error')
+            return
+        }
+
+        alert.show('Created playlist', 'success')
+        this.playlists.push(data)
+    }
+})
+
+// Check if we have a token in local storage and set the user
 auth.set_user()
+playlists.get_playlists()
+
 
 
 /**

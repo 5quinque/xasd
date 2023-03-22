@@ -55,6 +55,10 @@ async def create_user(user: schemas.UserCreate, auth: dependencies.auth):
         # [TODO] also return a token
         # access_token = auth.create_access_token(data={"sub": user.name})
         # return {"user": user, "jwt": {"access_token": access_token, "token_type": "bearer"}}
+        # Would also need a new response model for this.
+        # class UserWithToken(BaseModel):
+        #     user: User
+        #     jwt: Token
 
         return db_user
     else:

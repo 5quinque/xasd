@@ -50,7 +50,11 @@ def test_create_playlist(create_token, client):
     response = client.post(
         "/playlist",
         json={"name": "playlist_name"},
-        headers={"Authorization": f"Bearer {create_token}"},
+        headers={
+            "Authorization": f"Bearer {create_token}",
+            "Content-Type": "application/json",
+            "Accept": "application/json",
+        },
     )
     assert response.status_code == 201
     assert response.json() == {"name": "playlist_name", "playlist_id": 1, "tracks": []}
@@ -96,7 +100,7 @@ def test_options_playlist(client):
     assert response.headers == {
         "access-control-allow-origin": "*",
         "access-control-allow-methods": "OPTIONS, POST",
-        "access-control-allow-headers": "accept, Authorization",
+        "access-control-allow-headers": "accept, Authorization, Content-Type",
         "content-length": "0",
     }
 

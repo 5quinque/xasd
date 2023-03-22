@@ -1,11 +1,12 @@
 <script setup>
 import { RouterLink, RouterView } from 'vue-router'
 
-import { alert, auth } from './utils/state.js'
+import { alert, auth, playlists } from './utils/state.js'
 
 import Player from './components/Player.vue'
 
 import IconHome from './components/icons/IconHome.vue'
+import IconPlusSquareFill from './components/icons/IconPlusSquareFill.vue'
 import IconSearch from './components/icons/IconSearch.vue'
 import IconViewList from './components/icons/IconViewList.vue'
 
@@ -41,6 +42,22 @@ import IconViewList from './components/icons/IconViewList.vue'
                                 <IconViewList />
                                 Queue
                             </RouterLink>
+                        </li>
+                        <li v-if="auth.user">
+
+                            <a href="#" class="nav-link" active-class="active" to="/playlist"
+                                @click.prevent="playlists.create_playlist()">
+                                <IconPlusSquareFill />
+                                Create Playlist
+                            </a>
+                            <hr>
+
+                            <div style="height: 200px; overflow-y: scroll;">
+                                <RouterLink v-for="playlist in playlists.playlists" class="nav-link" active-class="active"
+                                    :to="{ name: 'playlist', params: { playlist: playlist.name } }">
+                                    {{ playlist.name }}
+                                </RouterLink>
+                            </div>
                         </li>
                     </ul>
                     <hr>

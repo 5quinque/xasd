@@ -1,6 +1,7 @@
 
 <script setup>
 
+import Playlist from './Playlist.vue'
 import Recommended from './Recommended.vue'
 import Search from './Search.vue'
 import Queue from './Queue.vue'
@@ -38,6 +39,9 @@ const registerPage = computed(() => {
     return route.name === 'register'
 })
 
+const PlaylistPage = computed(() => {
+    return route.name === 'playlist'
+})
 
 </script>
 
@@ -47,6 +51,7 @@ const registerPage = computed(() => {
             <!-- Header content here -->
         </header>
         <main>
+            <Playlist v-if="PlaylistPage" />
             <Recommended v-if="homePage" />
             <Search v-if="searchPage" />
             <Queue v-if="queuePage" />
