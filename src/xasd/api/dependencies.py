@@ -88,6 +88,21 @@ def _playlist(playlist_id: int, db: XasdDB = Depends(_db)):
     return db_playlist
 
 
+def _updated_playlist(
+    updated_playlist: schemas.Playlist,
+    db: XasdDB = Depends(_db),
+    current_user: models.User = Depends(_current_user),
+):
+    db_playlist = db.playlist.get(
+        filter=[models.Playlist.playlist_id == updated_playlist.playlist_id]
+    )
+
+    if db_playlist is None or db_playlist.owner_id != current_user.user_id:
+        raise HTTPException(status_code=404, detail="Playlist not found")
+
+    return db.playlist.update(db_playlist, name=updated_playlist.name)
+
+
 artist = Annotated[schemas.Artist, Depends(_artist)]
 auth = Annotated[Auth, Depends(_auth)]
 current_user = Annotated[bool, Depends(_current_user)]
@@ -96,3 +111,4 @@ file = Annotated[schemas.File, Depends(_file)]
 pagination_parameters = Annotated[dict, Depends(_pagination_parameters)]
 playlist = Annotated[schemas.Playlist, Depends(_playlist)]
 track = Annotated[schemas.Track, Depends(_track)]
+updated_playlist = Annotated[schemas.Playlist, Depends(_updated_playlist)]

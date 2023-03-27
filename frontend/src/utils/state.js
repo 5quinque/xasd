@@ -1,6 +1,8 @@
 import { ref, reactive } from 'vue'
 import { Howl, Howler } from 'howler'
 
+import router from '../router'
+
 const FILE_URL = `https://f000.backblazeb2.com/file/xasdmedia/`
 
 export const alert = reactive({
@@ -144,8 +146,7 @@ export const playlists = reactive({
                 "name": playlist_name
             })
         };
-        console.log("req opts", requestOptions)
-        const response = await fetch("http://localhost:8000/playlist/", requestOptions);
+        const response = await fetch("http://localhost:8000/playlist", requestOptions);
         const data = await response.json();
 
         if (!response.ok) {
@@ -156,7 +157,104 @@ export const playlists = reactive({
 
         alert.show('Created playlist', 'success')
         this.playlists.push(data)
-    }
+    },
+    async update_playlist_name(playlist) {
+        if (!auth.is_authenticated()) {
+            alert.show('You must be logged in to update a playlist', 'error')
+            return
+        }
+
+        const requestOptions = {
+            method: "PATCH",
+            headers: new Headers({
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${auth.token}`
+            }),
+            body: JSON.stringify(playlist)
+        };
+        const response = await fetch(`http://localhost:8000/playlist`, requestOptions);
+        const data = await response.json();
+
+        if (!response.ok) {
+            console.log('error', data.detail)
+            alert.show(data.detail, 'error')
+            return
+        }
+
+        alert.show('Updated playlist name', 'success')
+        playlists.get_playlists()
+
+        // update the route to the new playlist name
+        router.push({ name: 'playlist', params: { playlist: data.name } })
+    },
+    async delete_playlist(playlist) {
+        if (!auth.is_authenticated()) {
+            alert.show('You must be logged in to delete a playlist', 'error')
+            return
+        }
+
+        const requestOptions = {
+            method: "DELETE",
+            headers: new Headers({
+                // 'Accept': 'application/json',
+                // 'Content-Type': 'application/json',
+                'Authorization': `Bearer ${auth.token}`
+            })
+        }
+        const response = await fetch(`http://localhost:8000/playlist/${playlist.playlist_id}`, requestOptions)
+        // const data = await response.json()
+
+        // log the response
+        // console.log('response', response)
+
+
+        if (!response.ok) {
+            console.log('error', data.detail)
+            alert.show(data.detail, 'error')
+            return
+        }
+
+        alert.show('Deleted playlist', 'success')
+        playlists.get_playlists()
+
+        // // update the route to the home page
+        router.push({ name: 'home' })
+    },
+    async add_track_to_playlist(playlist, track) {
+        console.log("adding track to playlist", playlist, track)
+        if (!auth.is_authenticated()) {
+            alert.show('You must be logged in to add a track to a playlist', 'error')
+            return
+        }
+
+        const requestOptions = {
+            method: "POST",
+            headers: new Headers({
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${auth.token}`
+            }),
+            body: JSON.stringify({
+                "playlist": playlist,
+                "track": track
+            })
+        };
+        const response = await fetch(`http://localhost:8000/playlist/track`, requestOptions);
+        const data = await response.json();
+
+        if (!response.ok) {
+            console.log('error', data.detail)
+            alert.show(data.detail, 'error')
+            return
+        }
+
+        alert.show('Added track to playlist', 'success')
+    },
+
+
+
+
 })
 
 // Check if we have a token in local storage and set the user

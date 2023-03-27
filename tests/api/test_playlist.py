@@ -238,3 +238,28 @@ def test_delete_playlist_nonexistent(create_token, client):
     )
     assert response.status_code == 404
     assert response.json() == {"detail": "Playlist not found"}
+
+
+def test_update_playlist(create_playlist, client):
+    token = create_playlist["token"]
+    response = client.patch(
+        "/playlist",
+        json={"name": "new_playlist_name", "playlist_id": 1, "tracks": []},
+        headers={"Authorization": f"Bearer {token}"},
+    )
+    assert response.status_code == 201
+    assert response.json() == {
+        "name": "new_playlist_name",
+        "playlist_id": 1,
+        "tracks": [
+            {
+                "title": "track_title",
+                "tracknumber": "1",
+                "date": "2023",
+                "track_id": 1,
+                "file": {"filepath": "filepath", "file_id": 1},
+                "artist": {"name": "artist_name", "artist_id": 1},
+                "genre": {"name": "genre_name", "genre_id": 1},
+            }
+        ],
+    }

@@ -111,3 +111,17 @@ a,
 
 
 }
+
+
+
+.playlist-title {
+    .icon-pencil {
+        display: none;
+    }
+}
+
+.playlist-title:hover {
+    .icon-pencil {
+        display: initial;
+    }
+}

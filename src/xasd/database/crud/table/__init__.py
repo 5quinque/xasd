@@ -56,7 +56,7 @@ class Table:
 
         return entity
 
-    def update(self, entity, **kwargs: dict):
+    def update(self, entity, **kwargs: dict) -> object:
         """Update an entity
 
         Args:
@@ -67,6 +67,8 @@ class Table:
             setattr(entity, key, value)
 
         self._session.commit()
+
+        return entity
 
     def delete(self, entity):
         """Delete an entity

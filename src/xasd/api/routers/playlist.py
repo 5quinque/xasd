@@ -32,7 +32,7 @@ async def options_playlists_me():
 
 
 # create a new playlist for the current user
-@playlist_router.post("/", response_model=schemas.Playlist, status_code=201)
+@playlist_router.post("", response_model=schemas.Playlist, status_code=201)
 async def create_playlist(
     playlist: schemas.PlaylistCreate,
     current_user: dependencies.current_user,
@@ -49,12 +49,12 @@ async def create_playlist(
 
 
 # preflight options req for /playlist
-@playlist_router.options("/", response_model=schemas.Playlist)
+@playlist_router.options("", response_model=schemas.Playlist)
 async def options_playlist():
     return Response(
         headers={
             "Access-Control-Allow-Origin": "*",
-            "Access-Control-Allow-Methods": "OPTIONS, POST",
+            "Access-Control-Allow-Methods": "OPTIONS, POST, PATCH, DELETE",
             "Access-Control-Allow-Headers": "accept, Authorization, Content-Type",
         }
     )
@@ -126,3 +126,25 @@ async def delete_playlist(
         )
     db.playlist.delete(playlist)
     return Response(status_code=204)
+
+
+# options req for /playlist/{playlist_id}
+@playlist_router.options("/{playlist_id}", response_model=schemas.Playlist)
+async def options_playlist_id():
+    return Response(
+        headers={
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Methods": "OPTIONS, DELETE",
+            "Access-Control-Allow-Headers": "accept, Authorization, Content-Type",
+        }
+    )
+
+
+# update playlist name for the current user
+@playlist_router.patch(
+    "",
+    response_model=schemas.Playlist,
+    status_code=201,
+)
+async def update_playlist(updated_playlist: dependencies.updated_playlist):
+    return updated_playlist

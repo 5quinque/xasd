@@ -1,26 +1,22 @@
 <script setup>
 
-import { computed, ref, watch } from 'vue'
+import { computed, watchEffect, ref } from 'vue'
 import { playlists } from '../utils/state.js'
 import { useRoute } from 'vue-router'
 import Track from './lists/Track.vue';
-
+import EditablePlaylistTitle from "./EditablePlaylistTitle.vue";
 
 const route = useRoute()
+const playlist = ref(playlists.playlists.find(playlist => playlist.name === route.params.playlist))
 
-const playlist_name = ref(route.params.playlist)
-watch(() => route.params.playlist, () => {
-    playlist_name.value = route.params.playlist
+watchEffect(() => {
+    playlist.value = playlists.playlists.find(playlist => playlist.name === route.params.playlist)
 })
 
-
-const playlist = computed(() => {
-    return playlists.playlists.find(playlist => playlist.name === playlist_name.value)
-})
 
 </script>
 
 <template>
-    <h2>{{ playlist_name }}</h2>
+    <EditablePlaylistTitle v-if="playlist" :playlist="playlist" />
     <Track v-if="playlist" :tracks="playlist.tracks" />
 </template>
