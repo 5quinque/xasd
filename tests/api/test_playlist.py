@@ -99,7 +99,7 @@ def test_options_playlist(client):
     assert response.status_code == 200
     assert response.headers == {
         "access-control-allow-origin": "*",
-        "access-control-allow-methods": "OPTIONS, POST",
+        "access-control-allow-methods": "OPTIONS, POST, PATCH, DELETE",
         "access-control-allow-headers": "accept, Authorization, Content-Type",
         "content-length": "0",
     }
