@@ -8,6 +8,7 @@ def test_read_track(create_track, client):
         "track_id": 1,
         "file": {"filepath": "filepath", "file_id": 1},
         "artist": {"name": "artist_name", "artist_id": 1},
+        "album": {"name": "album_name", "cover_art": None},
         "genre": {"name": "genre_name", "genre_id": 1},
     }
 
@@ -29,6 +30,7 @@ def test_read_tracks(create_track, client):
             "track_id": 1,
             "file": {"filepath": "filepath", "file_id": 1},
             "artist": {"name": "artist_name", "artist_id": 1},
+            "album": {"name": "album_name", "cover_art": None},
             "genre": {"name": "genre_name", "genre_id": 1},
         }
     ]

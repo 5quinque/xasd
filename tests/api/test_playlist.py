@@ -16,6 +16,7 @@ def test_read_playlists_me(create_playlist, client):
                         "track_id": 1,
                         "file": {"filepath": "filepath", "file_id": 1},
                         "artist": {"name": "artist_name", "artist_id": 1},
+                        "album": {"name": "album_name", "cover_art": None},
                         "genre": {"name": "genre_name", "genre_id": 1},
                     }
                 ],
@@ -122,6 +123,7 @@ def test_add_track_to_playlist(create_playlist, client):
                 "track_id": 1,
                 "file": {"filepath": "filepath", "file_id": 1},
                 "artist": {"name": "artist_name", "artist_id": 1},
+                "album": {"name": "album_name", "cover_art": None},
                 "genre": {"name": "genre_name", "genre_id": 1},
             }
         ],
@@ -259,6 +261,7 @@ def test_update_playlist(create_playlist, client):
                 "track_id": 1,
                 "file": {"filepath": "filepath", "file_id": 1},
                 "artist": {"name": "artist_name", "artist_id": 1},
+                "album": {"name": "album_name", "cover_art": None},
                 "genre": {"name": "genre_name", "genre_id": 1},
             }
         ],
