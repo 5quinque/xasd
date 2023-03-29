@@ -272,7 +272,7 @@ playlists.get_playlists()
  * @property {Function} set_filter - Sets the filter to apply to the search results
  */
 export const search = reactive({
-    query: ref('a'),
+    query: ref('e'),
     results: [],
     filter: ref('all'),
     set_filter(filter) {

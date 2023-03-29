@@ -49,6 +49,18 @@ class File(FileBase):
         orm_mode = True
 
 
+class CoverArtBase(BaseModel):
+    filepath: str
+
+
+class CoverArt(CoverArtBase):
+    cover_art_id: int
+    # album: "Album"
+
+    class Config:
+        orm_mode = True
+
+
 class ArtistBase(BaseModel):
     name: str
 
@@ -93,8 +105,8 @@ class TrackCreate(TrackBase):
 class Track(TrackBase):
     track_id: int
     file: File
-    # album: "Album"
     artist: Artist
+    album: "AlbumWithCoverArt"
     genre: Genre = None
     # playlists: list["Playlist"]
 
@@ -104,17 +116,25 @@ class Track(TrackBase):
 
 class AlbumBase(BaseModel):
     name: str
-    artist_id: int
+    # artist_id: int
 
 
 class AlbumCreate(AlbumBase):
     pass
 
 
+class AlbumWithCoverArt(AlbumBase):
+    cover_art: Optional[CoverArt]
+
+    class Config:
+        orm_mode = True
+
+
 class Album(AlbumBase):
     album_id: int
     artist: Artist
     tracks: list[Track]
+    cover_art: Optional[CoverArt]
 
     class Config:
         orm_mode = True
@@ -149,3 +169,6 @@ class SearchListResponse(BaseModel):
 class HealthCheckResponse(BaseModel):
     status: str
     time: datetime
+
+
+Track.update_forward_refs()

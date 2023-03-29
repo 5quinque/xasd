@@ -19,9 +19,8 @@ watchEffect(async () => {
     <div class="container-fluid">
         <div class="row">
             <div class="col-5 form-outline">
-                <input name="query" v-model="search.query" type="search"
-                    class="z-n1 form-control border-0 rounded-pill fs-5" id="search-input"
-                    style="background-color: var(--bs-light-bg-subtle);" placeholder="🔎 Search">
+                <input name="query" v-model="search.query" type="search" class="form-control border-0 rounded-pill fs-5"
+                    id="search-input" style="background-color: var(--bs-light-bg-subtle);" placeholder="🔎 Search">
             </div>
         </div>
         <div class="row py-3">

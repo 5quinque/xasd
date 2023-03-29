@@ -9,7 +9,7 @@ const props = defineProps(['tracks'])
 
 </script>
 <template>
-    <ul class="list-group list-group-flush">
+    <ul class="list-group">
         <li class="list-group-item" :class="{ 'text-white': now_playing.is_track_playing(track) }" v-for="track in tracks">
 
             <VTooltip class="d-inline" :triggers="['click']" :autoHide="true">
@@ -33,6 +33,10 @@ const props = defineProps(['tracks'])
                         <li class="list-group-item mb-0">
                             <a href="#" class="text-white popover-link bg-transparent">Go to album</a>
                         </li>
+                        <hr class="my-0">
+                        <li class="list-group-item mb-0">
+                            <a href="#" class="text-white popover-link bg-transparent">Add to playlist</a>
+                        </li>
                     </ul>
                 </template>
             </VTooltip>
@@ -41,6 +45,9 @@ const props = defineProps(['tracks'])
                 <IconPlayFill style="margin-left: -5px" />
             </span>
 
+            <img v-if="track.album.cover_art"
+                :src="'https://f000.backblazeb2.com/file/xasdmedia/' + track.album.cover_art.filepath" class="album-cover"
+                alt="...">
             <a href="#" target="_blank" class="title" @click.prevent="now_playing.update(track)">
                 {{ track.title }}
             </a> -

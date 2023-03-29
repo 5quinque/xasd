@@ -42,12 +42,16 @@ const filter_class = function (filter) {
 
     <div v-if="search.filter === 'all' || search.filter === 'albums'">
         <h2>Albums:</h2>
-        <ul class="list-group list-group-flush">
+        <ul class="list-group">
             <li class="list-group-item" v-for="album in search.results.albums">
                 <a :href="album.url" target="_blank" class="title">
                     {{ album.name }} - {{ album.artist.name }}
                 </a>
+                <img v-if="album.cover_art" :src="'https://f000.backblazeb2.com/file/xasdmedia/' + album.cover_art.filepath"
+                    class="album-cover" alt="...">
             </li>
         </ul>
     </div>
 </template>
+
+<style scoped></style>

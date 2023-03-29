@@ -40,6 +40,15 @@ class File(Base):
     hash = relationship("Hash", back_populates="file")
 
 
+class CoverArt(Base):
+    __tablename__ = "cover_art"
+
+    cover_art_id = Column(Integer, primary_key=True)
+    filepath = Column(String(64), nullable=False)
+    album_id = Column(ForeignKey("album.album_id"))
+    album = relationship("Album", back_populates="cover_art")
+
+
 class Track(Base):
     __tablename__ = "track"
 
@@ -82,6 +91,7 @@ class Album(Base):
     artist_id = Column(Integer, ForeignKey("artist.artist_id"))
     artist = relationship("Artist", back_populates="albums")
     tracks = relationship("Track", back_populates="album")
+    cover_art = relationship("CoverArt", uselist=False, back_populates="album")
 
 
 class Genre(Base):

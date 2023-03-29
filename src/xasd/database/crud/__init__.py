@@ -17,13 +17,14 @@ from xasd.database.models import (
     Hash,
 )
 
+from xasd.database.crud.table.album import Album as AlbumCRUD
 from xasd.database.crud.table.artist import Artist as ArtistCRUD
+from xasd.database.crud.table.cover_art import CoverArt as CoverArtCRUD
 from xasd.database.crud.table.file import File as FileCRUD
 from xasd.database.crud.table.playlist import Playlist as PlaylistCRUD
 from xasd.database.crud.table.track import Track as TrackCRUD
 from xasd.database.crud.table.user import User as UserCRUD
 from xasd.database.crud.table.genre import Genre as GenreCRUD
-from xasd.database.crud.table.album import Album as AlbumCRUD
 from xasd.database.crud.table.hash import Hash as HashCRUD
 
 logger = logging.getLogger(__name__)
@@ -46,6 +47,7 @@ class XasdDB:
 
         self.album = AlbumCRUD(self._session)
         self.artist = ArtistCRUD(self._session)
+        self.cover_art = CoverArtCRUD(self._session)
         self.file = FileCRUD(self._session)
         self.genre = GenreCRUD(self._session)
         self.hash = HashCRUD(self._session)
