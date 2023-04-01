@@ -1,12 +1,8 @@
-import os
 import logging
-import time
-from typing import Optional, Tuple, Union
+from typing import Tuple, Union
 
-from sqlalchemy.orm import sessionmaker
-from sqlalchemy import create_engine, exc as sqlalchemy_exc
+import sqlalchemy
 
-from xasd.database import Base
 from xasd.database.models import (
     Album,
     Artist,
@@ -29,21 +25,10 @@ from xasd.database.crud.table.hash import Hash as HashCRUD
 
 logger = logging.getLogger(__name__)
 
-# [TODO] Continue to break down the CRUD operations into separate modules
-# e.g. user, track, artist, etc.
-
 
 class XasdDB:
-    def __init__(self, db_url: Optional[str] = None):
-        self._db_url = db_url
-        if self._db_url is None:
-            self._db_url = os.environ.get("DATABASE_URL")
-        if self._db_url is None:
-            raise ValueError(
-                "Provide a valid database URL by setting the `DATABASE_URL` environment variable."
-            )
-
-        self._db_connect()
+    def __init__(self, session: sqlalchemy.orm.session.Session):
+        self._session = session
 
         self.album = AlbumCRUD(self._session)
         self.artist = ArtistCRUD(self._session)
@@ -54,41 +39,6 @@ class XasdDB:
         self.playlist = PlaylistCRUD(self._session)
         self.track = TrackCRUD(self._session)
         self.user = UserCRUD(self._session)
-
-    def _db_connect(self):
-        """Connect to the database and create all relevant tables if they don't exist"""
-        if self._db_url.startswith("sqlite"):
-            connect_args = {"check_same_thread": False}
-        else:
-            connect_args = {}
-
-        self.__engine = create_engine(
-            self._db_url, connect_args=connect_args, echo=False
-        )
-
-        connection_attempts = 0
-        while True:
-            try:
-                connection_attempts += 1
-                logger.info(
-                    f"[{connection_attempts}] Attempting to connect to database"
-                )
-                Base.metadata.create_all(self.__engine)
-                logger.info(
-                    f"[{connection_attempts}] Successfully connected to database"
-                )
-                break
-            except sqlalchemy_exc.OperationalError as e:
-                if connection_attempts == 300:
-                    logger.error(
-                        f"Failed to connect to database after {connection_attempts} attempts. Exiting."
-                    )
-                    raise e
-                logger.warning("Failed to connect to base. Retrying in 5 seconds.")
-                time.sleep(5)
-
-        Session = sessionmaker(bind=self.__engine)
-        self._session = Session()
 
     def search_all(self, query):
         """Search for an entity by name

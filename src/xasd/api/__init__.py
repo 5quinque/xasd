@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from datetime import datetime
 
 from xasd.api.routers import track, artist, playlist, search, user
+from xasd.database.session import Session
 from xasd.database import schemas
 
 
@@ -43,6 +44,16 @@ async def add_cors_header(request, call_next):
     response = await call_next(request)
     response.headers["Access-Control-Allow-Origin"] = "*"
     return response
+
+
+@app.on_event("startup")
+async def startup():
+    app.state.db_pool = Session()
+
+
+@app.on_event("shutdown")
+async def shutdown():
+    app.state.db_pool.close()
 
 
 # Health check endpoint

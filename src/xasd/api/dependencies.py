@@ -1,6 +1,6 @@
 from typing import Annotated
 
-from fastapi import Depends, HTTPException
+from fastapi import Depends, HTTPException, Request
 from fastapi.security import OAuth2PasswordBearer
 
 from xasd.api.services.auth import Auth
@@ -11,11 +11,14 @@ from xasd.database import schemas, models
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
 
-def _db():
-    db = XasdDB()
+def _db(request: Request):
+    db_session = request.app.state.db_pool.get_session()
+
+    db = XasdDB(session=db_session)
     try:
         yield db
     finally:
+        db_session.close()
         del db
 
 

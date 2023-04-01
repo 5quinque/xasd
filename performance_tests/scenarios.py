@@ -1,9 +1,9 @@
 from mite.scenario import StopVolumeModel
 
-# from application.datapools import user_ids
+from datapools import artists, random_strings, track_ids
 
 
-def volume_model_factory(n, duration=60 * 5):
+def volume_model_factory(n, duration=60 * 15):
     def vm(start, end):
         if start > duration:
             raise StopVolumeModel
@@ -14,7 +14,14 @@ def volume_model_factory(n, duration=60 * 5):
 
 
 scenarios = [
-    (50, "journeys:health_journey", None),
+    (10, "journeys:read_tracks_journey", None),
+    (10, "journeys:read_track_journey", track_ids),
+    (10, "journeys:read_file_journey", track_ids),
+    (10, "journeys:read_albums_by_artist_journey", artists),
+    (10, "journeys:read_tracks_by_artist_journey", artists),
+    (10, "journeys:search_any_journey", random_strings),
+    (10, "journeys:search_track_journey", random_strings),
+    (2, "journeys:health_journey", None),
 ]
 
 

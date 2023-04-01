@@ -10,7 +10,7 @@ track_router = APIRouter(
 )
 
 
-@track_router.get("/", response_model=list[schemas.Track])
+@track_router.get("", response_model=list[schemas.Track])
 def read_tracks(
     pagination: dependencies.pagination_parameters, db: dependencies.database
 ):
