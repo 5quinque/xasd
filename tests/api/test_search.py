@@ -1,11 +1,13 @@
 def test_search_any_nonexistent(env, client):
-    response = client.get("/search/any/non_existent_query")
+    with client as c:
+        response = c.get("/search/any/non_existent_query")
     assert response.status_code == 200
     assert response.json() == {"albums": [], "artists": [], "tracks": []}
 
 
 def test_search_any(create_track, client):
-    response = client.get("/search/any/track_title")
+    with client as c:
+        response = c.get("/search/any/track_title")
     assert response.status_code == 200
     assert response.json() == {
         "tracks": [
@@ -26,13 +28,16 @@ def test_search_any(create_track, client):
 
 
 def test_search_track_nonexistent(env, client):
-    response = client.get("/search/track/non_existent_query")
+    with client as c:
+        response = c.get("/search/track/non_existent_query")
     assert response.status_code == 200
     assert response.json() == []
 
 
 def test_search_track(create_track, client):
-    response = client.get("/search/track/track_title")
+    with client as c:
+        response = c.get("/search/track/track_title")
+
     assert response.status_code == 200
     assert response.json() == [
         {

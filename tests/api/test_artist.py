@@ -1,5 +1,6 @@
 def test_read_albums(create_track, client):
-    response = client.get("/artist/artist_name/albums")
+    with client as c:
+        response = c.get("/artist/artist_name/albums")
     assert response.status_code == 200
     assert response.json() == [
         {
@@ -24,13 +25,15 @@ def test_read_albums(create_track, client):
 
 
 def test_read_albums_nonexistent(env, client):
-    response = client.get("/artist/artist_name/albums")
+    with client as c:
+        response = c.get("/artist/artist_name/albums")
     assert response.status_code == 404
     assert response.json() == {"detail": "Artist not found"}
 
 
 def test_read_tracks(create_track, client):
-    response = client.get("/artist/artist_name/tracks")
+    with client as c:
+        response = c.get("/artist/artist_name/tracks")
     assert response.status_code == 200
     assert response.json() == [
         {
@@ -47,7 +50,8 @@ def test_read_tracks(create_track, client):
 
 
 def test_read_tracks_nonexistent(env, client):
-    response = client.get("/artist/artist_name/tracks")
+    with client as c:
+        response = c.get("/artist/artist_name/tracks")
     assert response.status_code == 404
     assert response.json() == {"detail": "Artist not found"}
 

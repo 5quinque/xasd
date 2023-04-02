@@ -48,6 +48,7 @@ async def add_cors_header(request, call_next):
 
 @app.on_event("startup")
 async def startup():
+    print("Starting up...")
     app.state.db_pool = Session()
 
 

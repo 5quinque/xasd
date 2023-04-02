@@ -19,6 +19,7 @@ from docopt import docopt
 from xasd.database.models import CoverArt as CoverArtModel
 from xasd.database.models import Album as AlbumModel
 from xasd.database.crud import XasdDB
+from xasd.database.session import Session
 from xasd.uploader.b2_upload import B2Bucket
 from xasd.utils import setup_logging
 
@@ -107,7 +108,8 @@ def main():
     artist = opts["--artist"]
     album = opts["--album"]
 
-    db = XasdDB()
+    session = Session()
+    db = XasdDB(session=session.get_session())
 
     album_entity = db.album.get(
         filter=[AlbumModel.name == album and AlbumModel.artist == artist]

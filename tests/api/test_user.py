@@ -1,12 +1,13 @@
 def test_create_user(client):
-    response = client.post(
-        "/user",
-        json={
-            "name": "username",
-            "email_address": "user@example.com",
-            "plaintext_password": "pasword",
-        },
-    )
+    with client as c:
+        response = c.post(
+            "/user",
+            json={
+                "name": "username",
+                "email_address": "user@example.com",
+                "plaintext_password": "pasword",
+            },
+        )
     assert response.status_code == 201
     assert response.json() == {
         "name": "username",
@@ -16,14 +17,15 @@ def test_create_user(client):
 
 
 def test_create_user_duplicate(create_user, client):
-    response = client.post(
-        "/user",
-        json={
-            "name": "username",
-            "email_address": "user@example.com",
-            "plaintext_password": "pasword",
-        },
-    )
+    with client as c:
+        response = c.post(
+            "/user",
+            json={
+                "name": "username",
+                "email_address": "user@example.com",
+                "plaintext_password": "pasword",
+            },
+        )
     assert response.status_code == 409
     assert response.json() == {"detail": "User already registered"}
 
@@ -40,48 +42,52 @@ def test_options_create_user(client):
 
 
 def test_login(create_user, client):
-    response = client.post(
-        "/token",
-        data={
-            "grant_type": "password",
-            "username": "username",
-            "password": "password",
-        },
-    )
+    with client as c:
+        response = c.post(
+            "/token",
+            data={
+                "grant_type": "password",
+                "username": "username",
+                "password": "password",
+            },
+        )
     assert response.status_code == 200
     assert "access_token" in response.json()
 
 
 def test_login_invalid_credentials(create_user, client):
-    response = client.post(
-        "/token",
-        data={
-            "grant_type": "password",
-            "username": "username",
-            "password": "invalid_password",
-        },
-    )
+    with client as c:
+        response = c.post(
+            "/token",
+            data={
+                "grant_type": "password",
+                "username": "username",
+                "password": "invalid_password",
+            },
+        )
     assert response.status_code == 401
     assert response.json() == {"detail": "Incorrect username or password"}
 
 
 def test_login_nonexistent(client):
-    response = client.post(
-        "/token",
-        data={
-            "grant_type": "password",
-            "username": "username",
-            "password": "password",
-        },
-    )
+    with client as c:
+        response = c.post(
+            "/token",
+            data={
+                "grant_type": "password",
+                "username": "username",
+                "password": "password",
+            },
+        )
     assert response.status_code == 401
     assert response.json() == {"detail": "Incorrect username or password"}
 
 
 def test_read_users_me(create_token, client):
-    response = client.get(
-        "/user/me", headers={"Authorization": f"Bearer {create_token}"}
-    )
+    with client as c:
+        response = c.get(
+            "/user/me", headers={"Authorization": f"Bearer {create_token}"}
+        )
 
     assert response.status_code == 200
     assert response.json() == {
@@ -92,14 +98,16 @@ def test_read_users_me(create_token, client):
 
 
 def test_read_users_me_no_token(client):
-    response = client.get("/user/me")
+    with client as c:
+        response = c.get("/user/me")
     assert response.status_code == 401
     assert response.json() == {"detail": "Not authenticated"}
     assert response.headers["www-authenticate"] == "Bearer"
 
 
 def test_read_users_me_invalid_token(client):
-    response = client.get("/user/me", headers={"Authorization": "Bearer invalid_token"})
+    with client as c:
+        response = c.get("/user/me", headers={"Authorization": "Bearer invalid_token"})
 
     assert response.status_code == 401
     assert response.json() == {"detail": "Not authenticated"}

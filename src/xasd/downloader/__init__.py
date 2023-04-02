@@ -19,6 +19,7 @@ import aio_pika
 
 from xasd.abc import AbstractWorker
 from xasd.database.crud import XasdDB
+from xasd.database.session import Session
 from xasd.downloader.torrent import (
     create_lt_session,
     download,
@@ -60,7 +61,8 @@ class Downloader(AbstractWorker):
         self.lt_session.listen_on(6881, 6891)
         self.lt_queue = []
 
-        self.db = XasdDB()
+        session = Session()
+        self.db = XasdDB(session=session.get_session())
 
         super().__init__(
             producer_method="amqp", amqp_url=amqp_url, amqp_consume_queue="download"

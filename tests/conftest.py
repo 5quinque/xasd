@@ -8,11 +8,25 @@ from xasd.api import app
 from xasd.api.dependencies import Auth
 from xasd.database import models
 from xasd.database.crud import XasdDB
+from xasd.database.session import Session
 
 
 @pytest.fixture(scope="function")
 def client(env):
     yield TestClient(app)
+
+
+@pytest.fixture(scope="function")
+def db(env):
+    pool = Session()
+    db_session = pool.get_session()
+
+    db = XasdDB(session=db_session)
+    try:
+        yield db
+    finally:
+        db_session.close()
+        del db
 
 
 @pytest.fixture(scope="function")
@@ -26,9 +40,7 @@ def env():
 
 # fixture to create a new file in the database
 @pytest.fixture(scope="function")
-def create_track(env):
-    db = XasdDB()
-
+def create_track(db):
     artist = db.artist.create(name="artist_name")
     genre = db.genre.create(name="genre_name")
     album = db.album.create(
@@ -62,9 +74,7 @@ def create_track(env):
 
 
 @pytest.fixture(scope="function")
-def create_user(env):
-    db = XasdDB()
-
+def create_user(db):
     yield db.user.create(
         name="username",
         password_hash="$2b$12$Tlj5xnuVKIWlE319Bu81ce8YRsWt5.Q/dkiQMgkdBbTJSFNPtzlzy",
@@ -74,8 +84,7 @@ def create_user(env):
 
 # create jwt access token for user
 @pytest.fixture(scope="function")
-def create_token(create_user):
-    db = XasdDB()
+def create_token(db, create_user):
     user = db.user.get("username")
     auth = Auth(db)
     token = auth.create_access_token(data={"sub": user.name})
@@ -83,8 +92,7 @@ def create_token(create_user):
 
 
 @pytest.fixture(scope="function")
-def create_playlist(create_token, create_track):
-    db = XasdDB()
+def create_playlist(db, create_token, create_track):
     user = db.user.get("username")
     track = db.track.get(filter=[models.Track.title == "track_title"])
 

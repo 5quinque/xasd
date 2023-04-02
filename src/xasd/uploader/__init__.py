@@ -22,6 +22,7 @@ from typing import Any, Optional
 from xasd.abc import AbstractWorker
 from xasd.uploader.b2_upload import B2Bucket
 from xasd.database.crud import XasdDB
+from xasd.database.session import Session
 from xasd.uploader.dejavu import file_hash
 from xasd.uploader.track_info import track_info
 from xasd.uploader import fileinfo
@@ -56,7 +57,8 @@ class Uploader(AbstractWorker):
             os.environ.get("B2_SECRET"),
         )
 
-        self.db = XasdDB()
+        session = Session()
+        self.db = XasdDB(session=session.get_session())
 
         super().__init__(
             producer_method=producer_method,
