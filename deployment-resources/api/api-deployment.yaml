@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api-deployment
+  labels:
+    app: xasd-xapi
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: xasd-api
+  template:
+    metadata:
+      labels:
+        app: xasd-api
+    spec:
+      containers:
+      - name: xasd-api
+        image: registry.digitalocean.com/xasd/xasd:latest
+        command: ["uvicorn", "xasd.api:app", "--host", "0.0.0.0", "--port", "80"]
+        env:
+        - name: DATABASE_URL
+          value: mysql+pymysql://root:test_password@mariadb-service.default.svc.cluster.local/dejavu?charset=utf8mb4
+        - name: DATABASE_HOST
+          valueFrom:
+            configMapKeyRef:
+              name: api-configmap
+              key: database-host
+        - name: DATABASE-USER
+          valueFrom:
+            secretKeyRef:
+              name: database-user
+              key: database-user
+        - name: DATABASE_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: database-password
+              key: database-password
+        - name: DATABASE_NAME
+          valueFrom:
+            secretKeyRef:
+              name: database-name
+              key: database-name
+        ports:
+        - containerPort: 80
